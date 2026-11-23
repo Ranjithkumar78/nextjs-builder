@@ -5,7 +5,6 @@ import { newPage } from "./tree/pages";
 import * as P from "./presets";
 
 export { newPage };
-export { mahatmaTheme } from "./presets";
 
 export const TOKEN_PRESETS: { id: string; label: string; tokens: ThemeTokens }[] = [
   {

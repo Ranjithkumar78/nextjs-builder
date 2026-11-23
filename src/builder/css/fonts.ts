@@ -1,4 +1,4 @@
-import type { TBNode, Theme } from "../types";
+import type { TBNode, ThemeTokens } from "../types";
 import { walkNodes } from "../tree/find";
 
 export interface FontOption {
@@ -38,14 +38,14 @@ export const THEME_FONT_VARS: FontOption[] = [
 export const FONT_SELECT_OPTIONS = FONT_OPTIONS.map((f) => ({ label: f.label, value: f.value }));
 
 /** Find every Google font used by the theme tokens and node styles. */
-export function googleFontsUrl(theme: Theme, nodes: TBNode[]): string | null {
+export function googleFontsUrl(tokens: Pick<ThemeTokens, "headingFont" | "bodyFont">, nodes: TBNode[]): string | null {
   const used = new Set<string>();
   const check = (v?: string) => {
     if (!v) return;
     for (const f of FONT_OPTIONS) if (f.google && v.includes(f.value.split(",")[0])) used.add(f.google);
   };
-  check(theme.tokens.headingFont);
-  check(theme.tokens.bodyFont);
+  check(tokens.headingFont);
+  check(tokens.bodyFont);
   walkNodes(nodes, (n) => {
     check(n.styles.desktop.fontFamily);
     check(n.styles.tablet?.fontFamily);

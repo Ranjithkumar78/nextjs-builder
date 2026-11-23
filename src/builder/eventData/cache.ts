@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import type { TBNode } from "../types";
 import { getJson } from "../api/request";
 import { errorText } from "../lib/values";
@@ -47,19 +47,20 @@ export function refreshEventData(): void {
   }
 }
 
+const IDLE: LoadState<never> = { status: "idle" };
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/** Live data for a block. Re-renders only when this source's cache entry changes. */
 export function useEventData<K extends EventSource>(source: K, eventId: string): LoadState<EventDataMap[K]> {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((x) => x + 1);
-    listeners.add(l);
-    return () => {
-      listeners.delete(l);
-    };
-  }, []);
   useEffect(() => {
     if (eventId) void loadEventData(source, eventId);
   }, [source, eventId]);
-  return eventId ? cachedEventData(source, eventId) : { status: "idle" };
+  const snapshot = useCallback(() => (eventId ? (cache.get(keyOf(source, eventId)) as LoadState<EventDataMap[K]> | undefined) ?? IDLE : IDLE), [source, eventId]);
+  return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
 
 export function isEventSource(type: string): type is EventSource {

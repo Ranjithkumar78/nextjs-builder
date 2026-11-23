@@ -15,8 +15,6 @@ export function reducer(state: State, a: Action): State {
     case "REMOTE":
       // Newer copy from the API (e.g. saved from another tab); undo history no longer applies.
       return { ...state, project: withValidSelection({ ...state.project, themes: a.themes }), past: [], future: [], ui: { ...state.ui, selectedId: null } };
-    case "SYNC":
-      return { ...state, sync: a.sync };
     case "UI":
       return { ...state, ui: { ...state.ui, ...a.patch } };
     case "UNDO":

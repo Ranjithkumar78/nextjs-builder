@@ -9,8 +9,6 @@ export interface BuilderCtx {
   dispatch: Dispatch<Action>;
   theme: Theme;
   page: Page;
-  /** Try sending unsaved changes to the API again. */
-  retrySync: () => void;
 }
 
 export const BuilderContext = createContext<BuilderCtx | null>(null);

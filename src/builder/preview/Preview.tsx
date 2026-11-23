@@ -15,6 +15,8 @@ export default function Preview() {
   const theme = project ? (project.themes.find((t) => t.id === themeId) ?? project.themes.find((t) => t.id === project.activeThemeId) ?? project.themes[0]) : null;
   const page = theme ? (theme.pages.find((p) => p.id === pageId) ?? theme.pages[0]) : null;
   const nodes = useMemo(() => (theme && page ? pageNodes(theme, page) : []), [theme, page]);
+  const eventId = theme?.eventId;
+  const rc = useMemo<RenderCtx>(() => ({ edit: false, eventId }), [eventId]);
 
   useEffect(() => {
     if (page && theme) document.title = `${page.name} · ${theme.name}`;
@@ -38,7 +40,6 @@ export default function Preview() {
     if (target) go(target.page.id);
   };
 
-  const rc: RenderCtx = { edit: false, eventId: theme.eventId };
   return (
     <>
       <ThemeStyles theme={theme} nodes={nodes} mode="media" prefix="html{scroll-behavior:smooth} body{margin:0} " />

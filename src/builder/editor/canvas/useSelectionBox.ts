@@ -7,6 +7,7 @@ import { boxOf, nodeElement, type Box } from "./geometry";
 /**
  * Keeps the selection outline on the selected node: re-measured after every change that can move it
  * (edits, device switch, inline editing), on resize and when images in the canvas finish loading.
+ * Listeners are attached once per selection, not per edit.
  */
 export function useSelectionBox(frameRef: RefObject<HTMLDivElement | null>, selectedId: string | null, project: Project, device: Device, editingId: string | null): Box | null {
   const [box, setBox] = useState<Box | null>(null);
@@ -22,13 +23,15 @@ export function useSelectionBox(frameRef: RefObject<HTMLDivElement | null>, sele
     const update = () => setBox(boxOf(frame, selectedId));
     const ro = new ResizeObserver(update);
     ro.observe(frame);
-    frame.querySelectorAll("img").forEach((img) => img.addEventListener("load", update));
+    // "load" does not bubble, so one capturing listener catches every image (including ones added later).
+    frame.addEventListener("load", update, true);
     window.addEventListener("resize", update);
     return () => {
       ro.disconnect();
+      frame.removeEventListener("load", update, true);
       window.removeEventListener("resize", update);
     };
-  }, [frameRef, selectedId, project]);
+  }, [frameRef, selectedId]);
 
   // Scroll a newly selected node into view if it is off-screen.
   useEffect(() => {

@@ -7,7 +7,8 @@ import { ThemeStyles } from "../../render";
 import { startMoveDrag } from "../../dnd";
 import { getDef } from "../../registry";
 import { locate, pageNodes } from "../../tree";
-import { boxOf, nodeIdFrom, type Box } from "./geometry";
+import { nodeIdFrom } from "./geometry";
+import { useHoverBox } from "./useHoverBox";
 import { useSelectionBox } from "./useSelectionBox";
 import { useCanvasDrop } from "./useCanvasDrop";
 import { CanvasZone } from "./CanvasZone";
@@ -21,10 +22,12 @@ export function Canvas() {
   const { ui } = state;
   const frameRef = useRef<HTMLDivElement>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [hoverBox, setHoverBox] = useState<Box | null>(null);
+  const hover = useHoverBox(frameRef, ui.selectedId);
   const selBox = useSelectionBox(frameRef, ui.selectedId, state.project, ui.device, editingId);
   const drop = useCanvasDrop(frameRef);
-  const nodes = useMemo(() => pageNodes(theme, page), [theme, page]);
+  const { header, footer } = theme;
+  // Only header, page and footer changes rebuild the node list (not token edits).
+  const nodes = useMemo(() => pageNodes({ header, footer }, page), [header, footer, page]);
   const select = (id: string | null) => dispatch({ type: "UI", patch: { selectedId: id } });
 
   const stopEditing = useCallback(() => setEditingId(null), []);
@@ -46,11 +49,6 @@ export function Canvas() {
     setEditingId(id);
   };
 
-  const onMouseOver = (e: MouseEvent) => {
-    const id = nodeIdFrom(e.target);
-    setHoverBox(id && id !== ui.selectedId ? boxOf(frameRef.current, id) : null);
-  };
-
   const onDragStart = (e: DragEvent) => {
     const id = nodeIdFrom(e.target);
     if (!id || editingId) return e.preventDefault();
@@ -70,22 +68,22 @@ export function Canvas() {
           className="b-frame"
           onClick={onClick}
           onDoubleClick={onDoubleClick}
-          onMouseOver={onMouseOver}
-          onMouseLeave={() => setHoverBox(null)}
+          onMouseOver={hover.onMouseOver}
+          onMouseLeave={hover.clear}
           onDragStart={onDragStart}
           onDragOver={(e) => {
             drop.onDragOver(e);
-            setHoverBox(null);
+            hover.clear();
           }}
           onDrop={drop.onDrop}
           onDragLeave={drop.onDragLeave}
         >
           <div className="tb-root b-root">
-            {page.showHeader ? <CanvasZone zone="header" nodes={theme.header} rc={rc("header")} /> : null}
-            <CanvasZone zone="page" nodes={page.nodes} rc={rc("page")} />
-            {page.showFooter ? <CanvasZone zone="footer" nodes={theme.footer} rc={rc("footer")} /> : null}
+            {page.showHeader ? <CanvasZone zone="header" nodes={theme.header} rc={rc.header} /> : null}
+            <CanvasZone zone="page" nodes={page.nodes} rc={rc.page} />
+            {page.showFooter ? <CanvasZone zone="footer" nodes={theme.footer} rc={rc.footer} /> : null}
           </div>
-          <Overlays hover={hoverBox} selBox={selBox} sel={sel} indicator={drop.indicator} />
+          <Overlays hover={hover.box} selBox={selBox} sel={sel} indicator={drop.indicator} />
         </div>
       </div>
     </div>

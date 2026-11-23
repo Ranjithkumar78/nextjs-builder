@@ -8,13 +8,11 @@ const MERGE_MS = 1200;
 
 export const initialUI: UIState = {
   selectedId: null,
-  hoveredId: null,
   device: "desktop",
   hoverState: false,
   leftTab: "components",
   rightTab: "edit",
   clipboard: null,
-  zoom: 1,
 };
 
 /** Shown only until the API answers; never saved. */
@@ -24,7 +22,7 @@ function placeholderProject(): Project {
 }
 
 export function initialState(): State {
-  return { project: placeholderProject(), past: [], future: [], ui: initialUI, ready: false, lastKey: null, lastTime: 0, sync: { status: "loading" } };
+  return { project: placeholderProject(), past: [], future: [], ui: initialUI, ready: false, lastKey: null, lastTime: 0 };
 }
 
 /** Record an edit: push the previous project onto the undo stack (or merge with the last step). */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { smartTarget, useBuilder } from "../store";
 import { locate } from "../tree";
 
@@ -12,10 +12,16 @@ function isTyping(t: EventTarget | null): boolean {
 
 /** Undo/redo, duplicate, copy/paste, delete, select parent (Esc) and Alt+↑/↓ to reorder. */
 export function useShortcuts(): void {
-  const { state, dispatch, theme, page } = useBuilder();
+  const ctx = useBuilder();
+  // One window listener for the editor's lifetime; it reads the latest state from this ref.
+  const latestRef = useRef(ctx);
+  useEffect(() => {
+    latestRef.current = ctx;
+  });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (isTyping(e.target)) return;
+      const { state, dispatch, theme, page } = latestRef.current;
       const mod = e.metaKey || e.ctrlKey;
       const id = state.ui.selectedId;
       const key = e.key.toLowerCase();
@@ -45,5 +51,5 @@ export function useShortcuts(): void {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [state, dispatch, theme, page]);
+  }, []);
 }

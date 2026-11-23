@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, type Dispatch } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Project } from "../../types";
 import { AUTOSAVE_DELAY_MS, deleteTheme, saveTheme } from "../../api";
 import { errorText } from "../../lib/values";
-import type { Action } from "../types";
+import type { SyncState } from "../types";
 import { themeKey, type SyncRefs } from "./refs";
 
 /** Save changed themes to the API (and delete removed ones) a moment after the last edit. Returns a retry function. */
-export function useAutosave({ syncedRef, syncingRef, latestRef }: SyncRefs, dispatch: Dispatch<Action>, project: Project, ready: boolean): () => void {
+export function useAutosave({ syncedRef, syncingRef, latestRef }: SyncRefs, setSync: (s: SyncState) => void, project: Project, ready: boolean): () => void {
   const runSync = useCallback(
     async function run(): Promise<void> {
       const known = syncedRef.current;
@@ -19,7 +19,7 @@ export function useAutosave({ syncedRef, syncingRef, latestRef }: SyncRefs, disp
       if (!changed.length && !removed.length) return;
 
       syncingRef.current = true;
-      dispatch({ type: "SYNC", sync: { status: "saving" } });
+      setSync({ status: "saving" });
       try {
         for (const { t, i, key } of changed) {
           await saveTheme(t, i);
@@ -29,9 +29,9 @@ export function useAutosave({ syncedRef, syncingRef, latestRef }: SyncRefs, disp
           await deleteTheme(id);
           known.delete(id);
         }
-        dispatch({ type: "SYNC", sync: { status: "saved", at: Date.now() } });
+        setSync({ status: "saved", at: Date.now() });
       } catch (e) {
-        dispatch({ type: "SYNC", sync: { status: "error", message: errorText(e) } });
+        setSync({ status: "error", message: errorText(e) });
         syncingRef.current = false;
         return;
       }
@@ -39,7 +39,7 @@ export function useAutosave({ syncedRef, syncingRef, latestRef }: SyncRefs, disp
       // Edits made while saving are picked up by another pass.
       if (latestRef.current !== current) void run();
     },
-    [syncedRef, syncingRef, latestRef, dispatch],
+    [syncedRef, syncingRef, latestRef, setSync],
   );
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -10,9 +10,17 @@ export interface SyncRefs {
   latestRef: { current: Project };
 }
 
-/** Comparable snapshot of a theme at a position in the list. */
+/** JSON per theme object. Edits replace only the edited theme, so unchanged themes are never serialized twice. */
+const jsonCache = new WeakMap<Theme, string>();
+function themeJson(t: Theme): string {
+  let json = jsonCache.get(t);
+  if (json === undefined) jsonCache.set(t, (json = JSON.stringify(t)));
+  return json;
+}
+
+/** Comparable snapshot of a theme at a position in the list (same text as JSON.stringify([sort, t])). */
 export function themeKey(t: Theme, sort: number): string {
-  return JSON.stringify([sort, t]);
+  return `[${sort},${themeJson(t)}]`;
 }
 
 export function keysOf(themes: Theme[]): Map<string, string> {

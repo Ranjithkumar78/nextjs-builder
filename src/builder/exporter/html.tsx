@@ -40,7 +40,7 @@ const fontLinks = (url: string) => `<link rel="preconnect" href="https://fonts.g
 /** A complete, standalone HTML document for one page. */
 export function pageHtml(theme: Theme, page: Page): string {
   const nodes = pageNodes(theme, page);
-  const fonts = googleFontsUrl(theme, nodes);
+  const fonts = googleFontsUrl(theme.tokens, nodes);
   return `<!DOCTYPE html>
 <html lang="en">
 <head>

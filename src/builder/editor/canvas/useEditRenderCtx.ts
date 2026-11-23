@@ -1,22 +1,25 @@
 "use client";
 
-import { useCallback } from "react";
+import { useMemo } from "react";
 import type { Zone } from "../../types";
 import { useBuilder } from "../../store";
 import type { RenderCtx } from "../../render";
 
-/** Render context for one canvas zone: edit mode, inline text editing and the theme's event. */
-export function useEditRenderCtx(editingId: string | null, stopEditing: () => void): (zone: Zone) => RenderCtx {
+/**
+ * Render context per canvas zone: edit mode, inline text editing and the theme's event.
+ * The objects stay the same until one of their inputs changes, so memoized nodes skip re-rendering.
+ */
+export function useEditRenderCtx(editingId: string | null, stopEditing: () => void): Record<Zone, RenderCtx> {
   const { dispatch, theme } = useBuilder();
-  return useCallback(
-    (zone: Zone): RenderCtx => ({
+  const eventId = theme.eventId;
+  return useMemo(() => {
+    const base = {
       edit: true,
-      zone,
-      eventId: theme.eventId,
+      eventId,
       editingId,
-      onTextCommit: (id, key, text) => dispatch({ type: "UPDATE_PROPS", id, props: { [key]: text } }),
+      onTextCommit: (id: string, key: string, text: string) => dispatch({ type: "UPDATE_PROPS", id, props: { [key]: text } }),
       onTextDone: stopEditing,
-    }),
-    [editingId, dispatch, theme.eventId, stopEditing],
-  );
+    };
+    return { header: { ...base, zone: "header" }, page: { ...base, zone: "page" }, footer: { ...base, zone: "footer" } };
+  }, [editingId, dispatch, eventId, stopEditing]);
 }

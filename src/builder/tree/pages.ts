@@ -2,7 +2,7 @@ import type { Page, TBNode, Theme } from "../types";
 import { ulid } from "../ulid";
 
 /** Every node rendered on a page: the global header and footer (when shown) around the page's own nodes. */
-export function pageNodes(theme: Theme, page: Page): TBNode[] {
+export function pageNodes(theme: Pick<Theme, "header" | "footer">, page: Page): TBNode[] {
   return [...(page.showHeader ? theme.header : []), ...page.nodes, ...(page.showFooter ? theme.footer : [])];
 }
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBuilder } from "../../../store";
 import { blankTheme, starterTheme } from "../../../defaults";
-import { mahatmaTheme, navbar, simpleFooter } from "../../../presets";
+import { navbar, simpleFooter } from "../../../presets";
 import { ulid } from "../../../ulid";
 import { Field, TextInput } from "../../../ui/controls";
 import { FormActions } from "../../../ui/common";
@@ -18,11 +18,14 @@ export function NewThemeForm({ onDone }: { onDone: () => void }) {
   const [content, setContent] = useState<Content>("starter");
   const [palette, setPalette] = useState("light");
 
-  const create = () => {
+  const create = async () => {
     const n = name.trim();
     if (content === "copy") dispatch({ type: "DUPLICATE_THEME", id: theme.id });
-    else if (content === "mahatma") dispatch({ type: "ADD_THEME", theme: { ...mahatmaTheme(), name: n || "Mahatma Alumni Meetup 2026" } });
-    else {
+    else if (content === "mahatma") {
+      // Large template: only downloaded when someone creates it.
+      const { mahatmaTheme } = await import("../../../presets/mahatma");
+      dispatch({ type: "ADD_THEME", theme: { ...mahatmaTheme(), name: n || "Mahatma Alumni Meetup 2026" } });
+    } else {
       const fallback = `Theme ${state.project.themes.length + 1}`;
       const th = content === "starter" ? starterTheme(n || fallback, palette) : { ...blankTheme(n || fallback, palette), header: [navbar()], footer: [simpleFooter()] };
       dispatch({ type: "ADD_THEME", theme: { ...th, id: ulid() } });
@@ -48,7 +51,7 @@ export function NewThemeForm({ onDone }: { onDone: () => void }) {
           <PaletteButtons selected={palette} onPick={(id) => setPalette(id)} />
         </Field>
       ) : null}
-      <FormActions submitLabel="Create theme" onSubmit={create} onCancel={onDone} />
+      <FormActions submitLabel="Create theme" onSubmit={() => void create()} onCancel={onDone} />
     </div>
   );
 }

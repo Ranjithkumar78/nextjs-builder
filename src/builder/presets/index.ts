@@ -6,4 +6,4 @@ export * from "./content";
 export * from "./events";
 export * from "./blocks";
 export * from "./page-templates";
-export { mahatmaTheme } from "./mahatma";
+// The Mahatma alumni theme is not re-exported here: it is loaded on demand (see NewThemeForm).

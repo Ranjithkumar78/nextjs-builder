@@ -1,6 +1,6 @@
 "use client";
 
-import { createElement, type ReactNode } from "react";
+import { createElement, memo, type ReactNode } from "react";
 import type { TBNode } from "../types";
 import { nodeClass } from "../css/declarations";
 import { getDef } from "../registry";
@@ -34,7 +34,11 @@ function rootAttrs(node: TBNode, rc: RenderCtx, container: boolean): Attrs {
   return attrs;
 }
 
-export function NodeView({ node, rc }: { node: TBNode; rc: RenderCtx }): ReactNode {
+/**
+ * Renders one node and its children. Memoized: edits keep unchanged nodes as the same objects,
+ * so only the edited branch re-renders (the render context must be stable too).
+ */
+export const NodeView = memo(function NodeView({ node, rc }: { node: TBNode; rc: RenderCtx }): ReactNode {
   if (node.hidden && !rc.edit) return null;
   const def = getDef(node.type);
   const args: RenderArgs = {
@@ -60,9 +64,9 @@ export function NodeView({ node, rc }: { node: TBNode; rc: RenderCtx }): ReactNo
   };
   const render = RENDERERS[node.type];
   return render ? render(args) : createElement("div", args.attrs, def.container ? args.kids() : null);
-}
+});
 
-export function ZoneView({ nodes, rc }: { nodes: TBNode[]; rc: RenderCtx }) {
+export const ZoneView = memo(function ZoneView({ nodes, rc }: { nodes: TBNode[]; rc: RenderCtx }) {
   return (
     <>
       {nodes.map((n) => (
@@ -70,4 +74,4 @@ export function ZoneView({ nodes, rc }: { nodes: TBNode[]; rc: RenderCtx }) {
       ))}
     </>
   );
-}
+});

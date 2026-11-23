@@ -2,19 +2,24 @@ import type { Device, DropTarget, Page, Project, StyleMap, StyleState, TBNode, T
 
 /** Live preview tabs listen on this channel for unsaved edits. */
 export const PREVIEW_CHANNEL = "custom-theme-builder:preview";
+/** Edits are sent to preview tabs this long after the last change. */
+export const PREVIEW_DELAY_MS = 150;
+
+/** What the editor sends on PREVIEW_CHANNEL: the latest copy of the theme being edited. */
+export interface PreviewMessage {
+  theme: Theme;
+}
 
 export type LeftTab = "components" | "layers" | "pages" | "themes";
 export type RightTab = "edit" | "style" | "content" | "advanced";
 
 export interface UIState {
   selectedId: string | null;
-  hoveredId: string | null;
   device: Device;
   hoverState: boolean;
   leftTab: LeftTab;
   rightTab: RightTab;
   clipboard: TBNode | null;
-  zoom: number;
 }
 
 export type SyncStatus = "loading" | "saving" | "saved" | "error";
@@ -32,7 +37,6 @@ export interface State {
   ready: boolean;
   lastKey: string | null;
   lastTime: number;
-  sync: SyncState;
 }
 
 export type NodeAction =
@@ -72,7 +76,6 @@ export type AppAction =
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "UI"; patch: Partial<UIState> }
-  | { type: "SYNC"; sync: SyncState }
   | { type: "REMOTE"; themes: Theme[] };
 
 export type Action = AppAction | NodeAction | ThemeAction | PageAction;

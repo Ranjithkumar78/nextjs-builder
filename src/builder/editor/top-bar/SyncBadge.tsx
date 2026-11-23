@@ -1,12 +1,11 @@
 "use client";
 
-import { useBuilder } from "../../store";
+import { useSyncStatus } from "../../store";
 import { Icon } from "../../ui/Icon";
 
 /** "Saving…", "Saved", or "Not saved · Retry" after a failed save. */
 export function SyncBadge() {
-  const { state, retrySync } = useBuilder();
-  const { sync } = state;
+  const { sync, retrySync } = useSyncStatus();
   if (sync.status === "error")
     return (
       <button className="b-saved error" title={`${sync.message ?? "Not saved"} — click to try again`} onClick={retrySync}>

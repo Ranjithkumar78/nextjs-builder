@@ -1,6 +1,6 @@
 "use client";
 
-import { BuilderProvider, useBuilder } from "../store";
+import { BuilderProvider, useBuilder, useSyncStatus } from "../store";
 import { useShortcuts } from "./useShortcuts";
 import { LoadingScreen } from "./LoadingScreen";
 import { TopBar } from "./top-bar/TopBar";
@@ -28,7 +28,8 @@ function Workspace() {
 
 function Shell() {
   const { state } = useBuilder();
-  return state.ready ? <Workspace /> : <LoadingScreen sync={state.sync} />;
+  const { sync } = useSyncStatus();
+  return state.ready ? <Workspace /> : <LoadingScreen sync={sync} />;
 }
 
 /** The theme builder app: loads themes from the API, then shows the editor. */

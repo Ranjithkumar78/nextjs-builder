@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Project } from "../types";
-import { PREVIEW_CHANNEL } from "./types";
+import type { Theme } from "../types";
+import { PREVIEW_CHANNEL, PREVIEW_DELAY_MS } from "./types";
 
-/** Send edits to open preview tabs straight away (they load from the API on open). */
-export function usePreviewBroadcast(project: Project, ready: boolean): void {
+/**
+ * Send the edited theme to open preview tabs (they load everything else from the API on open).
+ * Typing is batched: only the latest version is sent, shortly after the last change.
+ */
+export function usePreviewBroadcast(theme: Theme, ready: boolean): void {
   const channelRef = useRef<BroadcastChannel | null>(null);
   useEffect(() => {
     if (typeof BroadcastChannel === "undefined") return;
@@ -14,6 +17,8 @@ export function usePreviewBroadcast(project: Project, ready: boolean): void {
     return () => channel.close();
   }, []);
   useEffect(() => {
-    if (ready) channelRef.current?.postMessage(project);
-  }, [project, ready]);
+    if (!ready) return;
+    const timer = setTimeout(() => channelRef.current?.postMessage({ theme }), PREVIEW_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [theme, ready]);
 }

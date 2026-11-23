@@ -1,11 +1,12 @@
+import { memo } from "react";
 import type { TBNode, Zone } from "../../types";
 import { ZoneView, type RenderCtx } from "../../render";
 import { Icon } from "../../ui/Icon";
 
 const LABELS: Record<Zone, string> = { header: "Header", page: "Page", footer: "Footer" };
 
-/** A drop area on the canvas: the global header, the page content or the global footer. */
-export function CanvasZone({ zone, nodes, rc }: { zone: Zone; nodes: TBNode[]; rc: RenderCtx }) {
+/** A drop area on the canvas: the global header, the page content or the global footer (memoized). */
+export const CanvasZone = memo(function CanvasZone({ zone, nodes, rc }: { zone: Zone; nodes: TBNode[]; rc: RenderCtx }) {
   const label = LABELS[zone];
   return (
     <div className={`b-zone b-zone-${zone}`} data-zone-root={zone}>
@@ -24,4 +25,4 @@ export function CanvasZone({ zone, nodes, rc }: { zone: Zone; nodes: TBNode[]; r
       )}
     </div>
   );
-}
+});
