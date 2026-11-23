@@ -1,0 +1,51 @@
+/* ---------- preview bar */
+.pv-bar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 12px;
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  font: 13px system-ui, sans-serif;
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+}
+.pv-bar select {
+  background: #1f2937;
+  color: #fff;
+  border: 1px solid #374151;
+  border-radius: 7px;
+  height: 28px;
+  padding: 0 6px;
+  font: inherit;
+}
+.pv-bar a {
+  color: #c7d2fe;
+  text-decoration: none;
+  font-weight: 600;
+}
+.pv-bar button {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 0;
+  background: #374151;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+@media (max-width: 1100px) {
+  .b-left-body {
+    width: 236px;
+  }
+  .b-right {
+    width: 284px;
+  }
+}

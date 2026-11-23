@@ -1,0 +1,62 @@
+/* ---------- inspector body, notes and sections */
+.b-insp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 40px;
+}
+.b-insp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 12px;
+}
+.b-note {
+  font-size: 11.5px;
+  color: var(--b-sub);
+  background: #f7f8fb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+.b-insp-head .b-note {
+  margin: 0;
+  background: #fff7e6;
+  color: #8a5a00;
+}
+.b-empty-note {
+  margin: 24px 16px;
+  text-align: center;
+  color: var(--b-sub);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+/* sections */
+.b-sec {
+  border-bottom: 1px solid var(--b-line-2);
+}
+.b-sec-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+  text-align: left;
+}
+.b-sec-head:hover {
+  background: #fafbfc !important;
+}
+.b-sec-body {
+  padding: 0 12px 14px;
+}
+.b-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 8px;
+}

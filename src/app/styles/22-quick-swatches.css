@@ -1,0 +1,50 @@
+/* ---------- quick edit: swatches and hints */
+.q-swatches button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  padding: 2px !important;
+  display: grid;
+  place-items: center;
+}
+.q-swatches button span {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+.q-swatches button:hover {
+  box-shadow: 0 0 0 2px #d4d7e2;
+}
+.q-swatches button.on {
+  box-shadow: 0 0 0 2px var(--b-accent);
+}
+.q-none {
+  background: linear-gradient(135deg, #fff 45%, #e5484d 45%, #e5484d 55%, #fff 55%);
+}
+.q-custom {
+  background: conic-gradient(#ef4444, #f59e0b, #22c55e, #06b6d4, #6366f1, #ec4899, #ef4444);
+}
+.q-exact {
+  width: 110px;
+}
+.q-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.q-hint {
+  font-size: 11.5px;
+  color: var(--b-sub);
+}
+.q-foot {
+  margin: 14px 12px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f7f8fb;
+  color: var(--b-sub);
+  font-size: 12px;
+}
+.q-wrap > .b-sec {
+  border-bottom: 1px solid var(--b-line-2);
+}

@@ -1,0 +1,99 @@
+/* ---------- main layout */
+.b-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.b-left {
+  flex: none;
+  display: flex;
+  background: var(--b-panel);
+  border-right: 1px solid var(--b-line);
+}
+.b-rail {
+  width: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 6px;
+  border-right: 1px solid var(--b-line-2);
+}
+.b-rail button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 0 6px;
+  border-radius: 10px;
+  color: var(--b-sub);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.b-rail button:hover {
+  background: var(--b-line-2);
+  color: var(--b-text);
+}
+.b-rail button.on {
+  background: var(--b-accent-2);
+  color: var(--b-accent);
+}
+.b-left-body {
+  width: 272px;
+  min-width: 0;
+  display: flex;
+}
+.b-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.b-panel-head {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--b-line-2);
+}
+.b-panel-head:has(.b-panel-title) {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.b-panel-title {
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.b-count {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--b-line-2);
+  color: var(--b-sub);
+}
+.b-panel-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+.b-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--b-line);
+  color: var(--b-faint);
+}
+.b-search input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: var(--b-text);
+}

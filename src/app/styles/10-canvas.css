@@ -1,0 +1,80 @@
+/* ---------- canvas */
+.b-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  position: relative;
+}
+.b-canvas-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  background: var(--b-bg) radial-gradient(circle at 1px 1px, #dfe2ea 1px, transparent 0) 0 0 / 18px 18px;
+}
+.b-device {
+  margin: 0 auto;
+  transition: width 0.25s ease;
+  max-width: 100%;
+}
+.b-device-tablet,
+.b-device-mobile {
+  max-width: none;
+}
+.b-device-label {
+  text-align: center;
+  color: var(--b-sub);
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.b-frame {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 12px 40px -16px rgba(16, 24, 40, 0.22);
+  overflow: clip;
+  min-height: calc(100vh - 52px - 48px);
+}
+.b-device-mobile .b-frame,
+.b-device-tablet .b-frame {
+  border-radius: 22px;
+  border: 8px solid #1d2433;
+}
+.b-root {
+  container: tbcanvas / inline-size;
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+}
+.b-zone {
+  position: relative;
+}
+.b-zone-page {
+  flex: 1;
+  min-height: 240px;
+}
+.b-zone-header,
+.b-zone-footer {
+  outline: 1px dashed transparent;
+  outline-offset: -1px;
+  transition: outline-color 0.15s;
+}
+.b-zone-header:hover,
+.b-zone-footer:hover {
+  outline-color: color-mix(in srgb, var(--b-global, #f59e0b) 70%, transparent);
+}
+.b-zone-tag {
+  position: absolute;
+  right: 6px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font: 600 10.5px/1.6 system-ui, sans-serif;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}

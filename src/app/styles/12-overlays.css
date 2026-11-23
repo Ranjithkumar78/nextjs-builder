@@ -1,0 +1,69 @@
+/* overlays */
+.b-ov {
+  position: absolute;
+  pointer-events: none;
+  z-index: 60;
+}
+.b-ov-hover {
+  outline: 1.5px dashed var(--b-hover);
+  outline-offset: -1px;
+}
+.b-ov-sel {
+  outline: 2px solid var(--b-sel);
+  outline-offset: -1px;
+}
+.b-ov-line {
+  background: var(--b-accent);
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px rgba(91, 91, 240, 0.25);
+}
+.b-ov-dropbox {
+  background: rgba(91, 91, 240, 0.08);
+  outline: 2px dashed var(--b-accent);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+.b-seltool {
+  position: absolute;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--b-sel);
+  color: #fff;
+  font: 600 11.5px system-ui, sans-serif;
+  box-shadow: 0 4px 14px -4px rgba(16, 24, 40, 0.4);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.b-seltool-drag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 6px;
+  height: 100%;
+  cursor: grab;
+}
+.b-seltool-drag em {
+  font-style: normal;
+  font-size: 10px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: #fbbf24;
+  color: #451a03;
+}
+.b-seltool button {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #fff !important;
+}
+.b-seltool button:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+.b-seltool button.danger:hover {
+  background: var(--b-danger) !important;
+}

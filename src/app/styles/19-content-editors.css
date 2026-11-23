@@ -1,0 +1,83 @@
+/* content editors */
+.b-imgfield {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.b-imgfield img,
+.b-imgfield-empty {
+  width: 100%;
+  height: 110px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid var(--b-line);
+  background: repeating-conic-gradient(#eef0f4 0 25%, #fff 0 50%) 0 0 / 14px 14px;
+}
+.b-imgfield-empty {
+  display: grid;
+  place-items: center;
+  color: var(--b-faint);
+}
+.b-bgprev {
+  height: 56px;
+  border-radius: 8px;
+  border: 1px solid var(--b-line);
+  margin-bottom: 6px;
+}
+.b-listed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+.b-listed > .b-btn {
+  align-self: flex-start;
+}
+.b-listed-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.b-linkrow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--b-line);
+  border-radius: 9px;
+  background: #fcfcfe;
+}
+.b-linkrow-top {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.b-linkrow-top .b-icon-btn {
+  width: 24px;
+  height: 24px;
+}
+.b-linkpick {
+  display: flex;
+  gap: 4px;
+}
+.b-linkpick-sel {
+  width: 76px;
+  flex: none;
+}
+.b-tips {
+  margin: 14px 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f7f8fb;
+  color: var(--b-sub);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.b-tips strong {
+  color: var(--b-text);
+}
+.b-tips ul {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  list-style: disc;
+}

@@ -1,0 +1,81 @@
+import type { ComponentDef } from "../types";
+import { tagOptions } from "../fields";
+
+export const FORM_COMPONENTS: ComponentDef[] = [
+  {
+    type: "form",
+    label: "Form",
+    category: "Forms",
+    icon: "form",
+    container: true,
+    defaultProps: { action: "", method: "post" },
+    defaultStyles: { display: "flex", flexDirection: "column", gap: "16px", width: "100%" },
+    fields: [
+      { key: "action", label: "Submit URL", type: "url", placeholder: "https://formspree.io/f/…" },
+      { key: "method", label: "Method", type: "select", options: tagOptions(["post", "get"]) },
+    ],
+  },
+  {
+    type: "input",
+    label: "Input",
+    category: "Forms",
+    icon: "input",
+    defaultProps: { label: "Email", name: "email", inputType: "email", placeholder: "you@example.com", required: true },
+    defaultStyles: { width: "100%" },
+    fields: [
+      { key: "label", label: "Label", type: "text" },
+      { key: "name", label: "Field name", type: "text" },
+      { key: "inputType", label: "Type", type: "select", options: tagOptions(["text", "email", "tel", "number", "date", "password", "url"]) },
+      { key: "placeholder", label: "Placeholder", type: "text" },
+      { key: "required", label: "Required", type: "toggle" },
+    ],
+  },
+  {
+    type: "textarea",
+    label: "Text area",
+    category: "Forms",
+    icon: "textarea",
+    defaultProps: { label: "Message", name: "message", placeholder: "How can we help?", rows: 5, required: false },
+    defaultStyles: { width: "100%" },
+    fields: [
+      { key: "label", label: "Label", type: "text" },
+      { key: "name", label: "Field name", type: "text" },
+      { key: "placeholder", label: "Placeholder", type: "text" },
+      { key: "rows", label: "Rows", type: "number" },
+      { key: "required", label: "Required", type: "toggle" },
+    ],
+  },
+  {
+    type: "select",
+    label: "Dropdown",
+    category: "Forms",
+    icon: "list",
+    defaultProps: { label: "Topic", name: "topic", items: ["General", "Sales", "Support"] },
+    defaultStyles: { width: "100%" },
+    fields: [
+      { key: "label", label: "Label", type: "text" },
+      { key: "name", label: "Field name", type: "text" },
+      { key: "items", label: "Options", type: "items" },
+    ],
+  },
+  {
+    type: "submit",
+    label: "Submit button",
+    category: "Forms",
+    icon: "submit",
+    inlineText: true,
+    defaultProps: { text: "Send message" },
+    defaultStyles: {
+      alignSelf: "flex-start",
+      padding: "12px 28px",
+      backgroundColor: "var(--tb-primary)",
+      color: "var(--tb-background)",
+      fontWeight: "600",
+      borderRadius: "var(--tb-radius)",
+      cursor: "pointer",
+      transition: "all .2s ease",
+    },
+    defaultHover: { backgroundColor: "var(--tb-secondary)" },
+    fields: [{ key: "text", label: "Label", type: "text" }],
+  },
+];

@@ -1,0 +1,65 @@
+/* ---------- canvas: header/footer zone labels and empty states */
+.b-zone-header .b-zone-tag {
+  bottom: 4px;
+}
+.b-zone-footer .b-zone-tag {
+  top: 4px;
+}
+.b-zone-header:hover .b-zone-tag,
+.b-zone-footer:hover .b-zone-tag {
+  opacity: 1;
+}
+.b-zone-empty {
+  margin: 16px;
+  min-height: 90px;
+  border: 2px dashed #cdd2de;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px;
+  color: #8b93a5;
+  font: 500 13px system-ui, sans-serif;
+  text-align: center;
+}
+.b-zone-page .b-zone-empty {
+  min-height: 260px;
+}
+.b-empty-drop {
+  min-height: 64px;
+  width: 100%;
+  flex: 1 1 100%;
+  border: 1.5px dashed #c5cad8;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font: 500 12px system-ui, sans-serif;
+  background: rgba(148, 163, 184, 0.06);
+}
+.b-frame [data-node-id] {
+  cursor: default;
+}
+.b-frame [data-hidden="true"] {
+  opacity: 0.3 !important;
+  outline: 1px dashed #94a3b8;
+}
+.b-frame [data-editing="true"] {
+  outline: 2px solid var(--b-sel) !important;
+  outline-offset: 2px;
+  cursor: text !important;
+  -webkit-user-modify: read-write;
+}
+.b-frame iframe,
+.b-frame video,
+.b-frame input,
+.b-frame textarea,
+.b-frame select {
+  pointer-events: none;
+}
+.b-frame img {
+  -webkit-user-drag: element;
+}

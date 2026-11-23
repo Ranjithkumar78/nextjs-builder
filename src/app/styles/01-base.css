@@ -1,0 +1,68 @@
+/* ================= Theme Builder editor chrome ================= */
+.b-app {
+  --b-bg: #f4f5f8;
+  --b-panel: #ffffff;
+  --b-line: #e5e7ee;
+  --b-line-2: #eef0f4;
+  --b-text: #1d2433;
+  --b-sub: #6b7385;
+  --b-faint: #9aa1b1;
+  --b-accent: #5b5bf0;
+  --b-accent-2: #ecebff;
+  --b-danger: #e5484d;
+  --b-sel: #5b5bf0;
+  --b-hover: #38bdf8;
+  --b-global: #f59e0b;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--b-bg);
+  color: var(--b-text);
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.b-app *,
+.b-app *::before,
+.b-app *::after {
+  box-sizing: border-box;
+}
+:where(.b-app button:not(.tb-root *)) {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+:where(.b-app button:not(.tb-root *)):disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ---------- loading */
+.b-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font: 14px system-ui, sans-serif;
+  color: #6b7385;
+  background: #f4f5f8;
+}
+.b-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid #dfe1f5;
+  border-top-color: #5b5bf0;
+  animation: b-spin 0.8s linear infinite;
+}
+@keyframes b-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,55 @@
+/* ---------- inline forms, color dots and palettes */
+.b-card {
+  border: 1px solid var(--b-line);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fcfcfe;
+}
+.b-dots {
+  display: inline-flex;
+  flex: none;
+}
+.b-dots i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  margin-left: -5px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.b-dots i:first-child {
+  margin-left: 0;
+}
+.b-palettes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.b-palette {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 9px;
+  border: 1px solid var(--b-line) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+.b-palette:hover,
+.b-palette.on {
+  border-color: var(--b-accent) !important;
+  background: #fafaff;
+}
+.b-subhead {
+  margin: 20px 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--b-faint);
+}

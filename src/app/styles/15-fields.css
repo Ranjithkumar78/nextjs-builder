@@ -1,0 +1,83 @@
+/* ---------- fields and inputs */
+.b-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin-bottom: 0;
+}
+.b-sec-body > .b-field + .b-field {
+  margin-top: 10px;
+}
+.b-field.full {
+  grid-column: 1 / -1;
+}
+.b-field-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--b-sub);
+  font-weight: 500;
+  min-height: 16px;
+}
+.b-field-label .is-set {
+  color: var(--b-accent);
+  font-weight: 600;
+}
+.b-field-label .is-set::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--b-accent);
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.b-reset {
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  color: var(--b-faint);
+}
+.b-reset:hover {
+  background: var(--b-line-2);
+  color: var(--b-danger);
+}
+.b-input {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--b-line);
+  border-radius: 7px;
+  background: #fff;
+  font: 12.5px system-ui, sans-serif;
+  color: var(--b-text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+textarea.b-input {
+  height: auto;
+  padding: 7px 8px;
+  resize: vertical;
+  line-height: 1.45;
+}
+.b-input.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+.b-input:focus {
+  border-color: var(--b-accent);
+  box-shadow: 0 0 0 3px rgba(91, 91, 240, 0.15);
+}
+.b-input::placeholder {
+  color: #b3b9c6;
+}
+select.b-input {
+  padding-right: 4px;
+  cursor: pointer;
+}

@@ -1,9 +1,11 @@
-import type { Page, Theme, ThemeTokens } from "./types";
+import type { Theme, ThemeTokens } from "./types";
 import { ulid } from "./ulid";
+import { deepClone } from "./lib/values";
+import { newPage } from "./tree/pages";
 import * as P from "./presets";
-import { mahatmaTheme } from "./presets-mahatma";
 
-export { mahatmaTheme };
+export { newPage };
+export { mahatmaTheme } from "./presets";
 
 export const TOKEN_PRESETS: { id: string; label: string; tokens: ThemeTokens }[] = [
   {
@@ -56,16 +58,16 @@ export const TOKEN_PRESETS: { id: string; label: string; tokens: ThemeTokens }[]
   },
 ];
 
-export function newPage(name: string, slug: string, nodes = [] as Page["nodes"]): Page {
-  return { id: ulid(), name, slug, nodes, showHeader: true, showFooter: true };
+/** A copy of a preset's tokens (the first preset when the id is unknown). */
+function presetTokens(presetId: string): ThemeTokens {
+  return deepClone(TOKEN_PRESETS.find((t) => t.id === presetId)?.tokens ?? TOKEN_PRESETS[0].tokens);
 }
 
 export function starterTheme(name = "Starter", presetId = "light"): Theme {
-  const tokens = TOKEN_PRESETS.find((t) => t.id === presetId)?.tokens ?? TOKEN_PRESETS[0].tokens;
   return {
     id: ulid(),
     name,
-    tokens: JSON.parse(JSON.stringify(tokens)),
+    tokens: presetTokens(presetId),
     header: [P.navbar()],
     footer: [P.footer()],
     pages: [
@@ -78,11 +80,10 @@ export function starterTheme(name = "Starter", presetId = "light"): Theme {
 }
 
 export function blankTheme(name = "Blank theme", presetId = "light"): Theme {
-  const tokens = TOKEN_PRESETS.find((t) => t.id === presetId)?.tokens ?? TOKEN_PRESETS[0].tokens;
   return {
     id: ulid(),
     name,
-    tokens: JSON.parse(JSON.stringify(tokens)),
+    tokens: presetTokens(presetId),
     header: [],
     footer: [],
     pages: [newPage("Home", "home")],

@@ -49,30 +49,44 @@ In headings, paragraphs, badges and list items you can write `*words*` for an it
 
 ## Project structure
 
+Every source file is kept under 100 lines. Shared pieces live in one place and are reused.
+
 ```
 src/
   app/
-    page.tsx            → the editor
-    preview/page.tsx    → live preview
-    builder.css         → editor styles
+    page.tsx              → the editor
+    preview/page.tsx      → live preview
+    styles/               → editor styles, one file per area (index.ts imports them in order)
+    api/theme-builder/    → proxy routes to the Stutzee API
+  server/                 → API settings and the shared proxy helper (server only)
   builder/
-    types.ts            → data model (Project → Theme → Page → Node)
-    registry.ts         → component definitions (add new components here)
-    presets.ts          → ready-made blocks (hero, pricing, footer, …)
-    defaults.ts         → starter themes and style presets
-    store.tsx           → state, undo/redo and autosave
-    css.ts              → turns element styles into CSS
-    tree.ts             → node tree helpers
-    dnd.ts              → drop position logic
-    exporter.tsx        → HTML and ZIP export
-    render/NodeView.tsx → renders elements (editor, preview and export)
-    editor/             → TopBar, LeftPanel, Canvas, Inspector
-    ui/                 → shared controls and icons
+    types.ts              → data model (Project → Theme → Page → Node)
+    lib/                  → small shared helpers (values, HTML, embeds, countdown, download, zip)
+    registry/             → component definitions, one file per category (add new components here)
+    presets/              → ready-made blocks and page templates; mahatma/ is the alumni theme
+    defaults.ts           → starter themes and style presets
+    store/                → state: reducers (nodes, themes, pages), undo/redo, sync/ (load + autosave)
+    css/                  → turns element styles and theme tokens into CSS
+    tree/                 → node tree helpers and page helpers
+    dnd/                  → drag state and drop position logic
+    api/                  → API client and data mapping
+    eventData/            → live event data (speakers, sponsors, tickets, sessions): types, loading, formatting
+    exporter/             → HTML and ZIP export
+    render/               → renders elements (editor, preview and export)
+      nodes/              → one renderer map per category (layout, text, media, forms, events)
+      event-blocks/       → Speakers, Sponsors, Tickets and Sessions blocks and their shared parts
+    preview/              → the live preview page
+    editor/
+      top-bar/  canvas/  left-panel/  inspector/  quick-edit/
+    ui/
+      controls/           → inputs (text, unit, select, color, toggle, box model, …)
+      common/             → reusable pieces (panel, list item, icon button, upload button, …)
+      hooks/              → useDismiss (click outside), useDraft (typing-safe inputs)
 ```
 
 ### Adding a new component
 
-1. Add a `ComponentDef` to `COMPONENTS` in `src/builder/registry.ts`.
-2. Add a `case` for its `type` in `src/builder/render/NodeView.tsx`.
+1. Add a `ComponentDef` to the matching category file in `src/builder/registry/components/` (or `registry/events/`).
+2. Add a renderer for its `type` to the matching map in `src/builder/render/nodes/`.
 
 The new component then appears in the left panel, and the inspector's Style tab works with it automatically.

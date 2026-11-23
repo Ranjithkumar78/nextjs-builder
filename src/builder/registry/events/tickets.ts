@@ -1,0 +1,56 @@
+import type { ComponentDef } from "../types";
+import { pairOptions as opts } from "../../lib/values";
+import { ALIGN, CARD_STYLE, COLUMNS, EMPTY_TEXT, EVENT_OVERRIDE, not } from "./fields";
+
+export const TICKETS: ComponentDef = {
+  type: "tickets",
+  label: "Tickets",
+  category: "Event data",
+  icon: "ticket",
+  defaultProps: {
+    layout: "byCategory",
+    columns: 3,
+    category: "",
+    cardStyle: "elevated",
+    align: "left",
+    currency: "₹",
+    showDescription: true,
+    showDates: true,
+    showRemaining: false,
+    showSoldOut: true,
+    highlight: "",
+    buttonText: "Book now",
+    buttonHref: "#register",
+    eventId: "",
+    emptyText: "Tickets are not on sale yet.",
+  },
+  defaultStyles: { width: "100%" },
+  fields: [
+    {
+      key: "layout",
+      label: "Layout",
+      type: "select",
+      options: opts([
+        ["byCategory", "Grouped by category"],
+        ["tabs", "Category tabs"],
+        ["all", "All tickets"],
+        ["pricing", "Pricing table"],
+        ["list", "Compact list"],
+      ]),
+    },
+    { key: "category", label: "Only this category", type: "datafilter", facet: "ticketCategory", when: not("layout", "tabs") },
+    COLUMNS(not("layout", "list")),
+    { key: "highlight", label: "Highlight ticket", type: "text", placeholder: "Part of the ticket name, e.g. VIP", help: "The first ticket whose name contains this text is highlighted.", when: not("layout", "list") },
+    { ...CARD_STYLE, when: not("layout", "list") },
+    { ...ALIGN, when: not("layout", "list") },
+    { key: "currency", label: "Currency symbol", type: "text" },
+    { key: "showDescription", label: "Show description", type: "toggle" },
+    { key: "showDates", label: "Show sale dates", type: "toggle" },
+    { key: "showRemaining", label: "Show tickets left", type: "toggle" },
+    { key: "showSoldOut", label: "Show sold-out tickets", type: "toggle" },
+    { key: "buttonText", label: "Button text", type: "text", help: "Leave empty to hide the button." },
+    { key: "buttonHref", label: "Button link", type: "url", help: "Use {ticket} to insert the ticket ID." },
+    EMPTY_TEXT,
+    EVENT_OVERRIDE,
+  ],
+};

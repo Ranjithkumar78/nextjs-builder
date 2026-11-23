@@ -1,0 +1,36 @@
+/* ---------- menu */
+.b-menu-wrap {
+  position: relative;
+}
+.b-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 250px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid var(--b-line);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px -12px rgba(16, 24, 40, 0.25);
+  z-index: 50;
+}
+.b-menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: left;
+}
+.b-menu button:hover {
+  background: var(--b-line-2);
+}
+.b-menu button.danger {
+  color: var(--b-danger);
+}
+.b-menu-sep {
+  height: 1px;
+  background: var(--b-line);
+  margin: 6px 0;
+}

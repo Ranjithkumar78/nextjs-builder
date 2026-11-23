@@ -1,0 +1,58 @@
+/* ---------- quick edit (simple controls) */
+.q-wrap {
+  padding-bottom: 8px;
+}
+.q-title {
+  padding: 14px 12px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--b-faint);
+}
+.q-row {
+  padding: 8px 12px;
+}
+.q-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--b-text);
+  margin-bottom: 6px;
+}
+.q-ctl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.q-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--b-line-2);
+}
+.q-choice button {
+  flex: 1 1 auto;
+  min-width: 34px;
+  height: 28px;
+  padding: 0 8px !important;
+  border-radius: 7px;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--b-sub) !important;
+  white-space: nowrap;
+}
+.q-choice button:hover {
+  color: var(--b-text) !important;
+}
+.q-choice button.on {
+  background: #fff !important;
+  color: var(--b-accent) !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
+}
+.q-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

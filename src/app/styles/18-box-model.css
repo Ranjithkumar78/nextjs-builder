@@ -1,0 +1,82 @@
+/* box model */
+.b-boxmodel {
+  font-size: 10px;
+}
+.b-bm-margin,
+.b-bm-padding {
+  position: relative;
+  border-radius: 8px;
+  padding: 18px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.b-bm-margin {
+  background: #fff7ed;
+  border: 1px dashed #fdba74;
+}
+.b-bm-padding {
+  flex: 1;
+  background: #ecfdf5;
+  border: 1px dashed #6ee7b7;
+}
+.b-bm-tag {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #9a6b3a;
+}
+.b-bm-padding .b-bm-tag {
+  color: #2f855a;
+}
+.b-bm-tag button {
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  opacity: 0.6;
+}
+.b-bm-tag button.on {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+.b-bm-top {
+  display: flex;
+  justify-content: center;
+}
+.b-bm-mid {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.b-bm-core {
+  flex: 1;
+  height: 26px;
+  border-radius: 5px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  min-width: 24px;
+}
+.b-bm-input {
+  width: 52px;
+  flex: none;
+}
+.b-bm-input .b-input {
+  height: 24px;
+  padding: 0 4px;
+  text-align: center;
+  font-size: 11px;
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.85);
+}
+.b-bm-input .b-input:focus {
+  border-color: var(--b-accent);
+}
