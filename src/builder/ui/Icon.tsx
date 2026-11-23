@@ -1,10 +1,9 @@
 import type { CSSProperties } from "react";
-import { ICON_PATHS } from "./icons";
+import { iconPaths } from "../lib/icons";
 
-export type IconName = keyof typeof ICON_PATHS | string;
+export type IconName = string;
 
-export function Icon({ name, size = 16, style, className }: { name: IconName; size?: number; style?: CSSProperties; className?: string }) {
-  const d = ICON_PATHS[name] ?? ICON_PATHS.box;
+export function Icon({ name, size = 16, style, className }: { name: IconName; size?: number | string; style?: CSSProperties; className?: string }) {
   return (
     <svg
       width={size}
@@ -19,8 +18,8 @@ export function Icon({ name, size = 16, style, className }: { name: IconName; si
       className={className}
       aria-hidden="true"
     >
-      {d.split(" M").map((seg, i) => (
-        <path key={i} d={i === 0 ? seg : "M" + seg} />
+      {iconPaths(name).map((d, i) => (
+        <path key={i} d={d} />
       ))}
     </svg>
   );

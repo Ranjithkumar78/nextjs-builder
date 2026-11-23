@@ -61,6 +61,6 @@ export function createNode(type: string, props: NodeProps = {}, styles: StyleMap
     },
   };
   if (extra.name) node.name = extra.name;
-  if (def.container) node.children = children ?? [];
+  if (def.container) node.children = children ?? def.defaultChildren?.(createNode) ?? [];
   return node;
 }

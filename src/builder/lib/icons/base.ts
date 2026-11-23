@@ -1,5 +1,5 @@
-/** SVG path data for every editor icon (24×24 viewBox; " M" starts a new <path>). */
-export const ICON_PATHS: Record<string, string> = {
+/** SVG path data for the editor's icons (24×24 viewBox; " M" starts a new <path>). */
+export const BASE_ICON_PATHS: Record<string, string> = {
   section: "M3 5h18v14H3z M3 9h18",
   container: "M4 4h16v16H4z M8 8h8v8H8z",
   row: "M3 6h18v12H3z M9 6v12 M15 6v12",

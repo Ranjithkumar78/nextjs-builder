@@ -14,6 +14,10 @@ export interface NodeStyles {
 export interface LinkItem {
   label: string;
   href: string;
+  /** Icon name (social links). */
+  icon?: string;
+  /** Sub-links shown in a dropdown (menus). */
+  children?: LinkItem[];
 }
 
 export type PropValue = string | number | boolean | string[] | LinkItem[] | undefined;
