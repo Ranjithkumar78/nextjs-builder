@@ -2,8 +2,10 @@
 
 import { useRef, type ReactNode } from "react";
 import { activeTheme, useBuilder } from "../store";
+import { imageUrlFor } from "../api";
 import { locate } from "../tree";
-import { getDef, placeholderImage, type FieldDef } from "../registry";
+import { getDef, placeholderImage, type DataFacet, type FieldDef } from "../registry";
+import { EVENT_SOURCES, refreshEventData, useEventData, type EventSource } from "../eventData";
 import { FONT_OPTIONS, THEME_FONT_VARS, mergedStyle } from "../css";
 import type { LinkItem, StyleMap, StyleState, TBNode, ThemeColors, Page } from "../types";
 import { BoxModel, ColorInput, Field, RangeInput, Section, Segmented, SelectInput, TextInput, Toggle, UnitInput } from "../ui/controls";
@@ -49,15 +51,6 @@ function expandShorthand(v: string): [string, string, string, string] {
 }
 const SIDES = ["Top", "Right", "Bottom", "Left"];
 
-function readFile(file: File): Promise<string> {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(String(r.result));
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
-}
-
 export function UploadButton({ onData, label = "Upload" }: { onData: (dataUrl: string) => void; label?: string }) {
   const ref = useRef<HTMLInputElement>(null);
   return (
@@ -73,8 +66,8 @@ export function UploadButton({ onData, label = "Upload" }: { onData: (dataUrl: s
         onChange={async (e) => {
           const f = e.target.files?.[0];
           if (!f) return;
-          if (f.size > 1.5 * 1024 * 1024 && !confirm("This image is larger than 1.5 MB and will be stored in your browser. Continue?")) return;
-          onData(await readFile(f));
+          const url = await imageUrlFor(f);
+          if (url) onData(url);
           e.target.value = "";
         }}
       />
@@ -597,19 +590,98 @@ function ContentFields({ node, fields, pages }: { node: TBNode; fields: FieldDef
           </div>
         );
       }
+      case "datafilter":
+        return <DataFilterSelect facet={f.facet ?? "ticketCategory"} eventId={eventId} value={String(v ?? "")} onChange={(x) => set(f.key, x)} />;
       default:
         return <TextInput value={String(v ?? "")} onChange={(x) => set(f.key, x)} placeholder={f.placeholder} />;
     }
   };
+  const isEventBlock = (EVENT_SOURCES as string[]).includes(node.type);
+  const eventId = String(node.props.eventId ?? "").trim() || (theme.eventId ?? "").trim();
   return (
-    <Section title="Content">
-      {fields.map((f) => (
+    <Section title={isEventBlock ? "Data & layout" : "Content"}>
+      {isEventBlock ? <EventDataStatus source={node.type as EventSource} eventId={eventId} /> : null}
+      {fields.filter((f) => !f.when || f.when(node.props)).map((f) => (
         <Field key={f.key} label={f.label} full>
           {editor(f)}
           {f.help ? <div className="b-note">{f.help}</div> : null}
         </Field>
       ))}
     </Section>
+  );
+}
+
+const FACET_SOURCE: Record<DataFacet, EventSource> = {
+  ticketCategory: "tickets",
+  sponsorTier: "sponsors",
+  sessionTrack: "sessions",
+  sessionDay: "sessions",
+};
+
+/** A select whose options (ticket categories, sponsor tiers, tracks, days) come from the event's live data. */
+function DataFilterSelect({ facet, eventId, value, onChange }: { facet: DataFacet; eventId: string; value: string; onChange: (v: string) => void }) {
+  const state = useEventData(FACET_SOURCE[facet], eventId);
+  let options: { value: string; label: string }[] = [];
+  if (state.status === "ready") {
+    const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))].map((x) => ({ value: x, label: x }));
+    const data = state.data as unknown;
+    if (facet === "ticketCategory") options = uniq((data as { name: string }[]).map((c) => c.name));
+    if (facet === "sponsorTier") options = uniq((data as { tier: string }[]).map((s) => s.tier));
+    if (facet === "sessionTrack") options = uniq((data as { sessions: { track: string }[] }[]).flatMap((d) => d.sessions.map((x) => x.track)));
+    if (facet === "sessionDay") options = (data as { day: string; label: string }[]).map((d) => ({ value: d.day, label: d.label || `Day ${d.day}` }));
+  }
+  if (value && !options.some((o) => o.value === value)) options = [{ value, label: value }, ...options];
+  return (
+    <select className="b-input" value={value} onChange={(e) => onChange(e.target.value)} disabled={!eventId}>
+      <option value="">{state.status === "loading" ? "Loading…" : "All"}</option>
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+const SOURCE_NOUN: Record<EventSource, [string, string]> = {
+  speakers: ["speaker", "speakers"],
+  sponsors: ["sponsor", "sponsors"],
+  tickets: ["ticket", "tickets"],
+  sessions: ["session", "sessions"],
+};
+
+/** Shows where an event-data block gets its data and lets the user reload it. */
+function EventDataStatus({ source, eventId }: { source: EventSource; eventId: string }) {
+  const { dispatch } = useBuilder();
+  const state = useEventData(source, eventId);
+  const [one, many] = SOURCE_NOUN[source];
+  let text: string;
+  if (!eventId) text = "No event chosen yet.";
+  else if (state.status === "ready") {
+    const data = state.data as unknown[];
+    const count =
+      source === "tickets"
+        ? (data as { tickets: unknown[] }[]).reduce((n, c) => n + c.tickets.length, 0)
+        : source === "sessions"
+          ? (data as { sessions: unknown[] }[]).reduce((n, d) => n + d.sessions.length, 0)
+          : data.length;
+    text = `${count} ${count === 1 ? one : many} loaded from the event.`;
+  } else if (state.status === "error") text = `Could not load ${many}: ${state.error}`;
+  else text = `Loading ${many}…`;
+  return (
+    <div className={`b-data-status${state.status === "error" ? " error" : ""}`}>
+      <Icon name={state.status === "error" ? "close" : "globe"} size={14} />
+      <span>{text}</span>
+      {eventId ? (
+        <button className="b-icon-btn" title="Reload data from the API" onClick={() => refreshEventData()}>
+          <Icon name="refresh" size={14} />
+        </button>
+      ) : (
+        <button className="b-btn small" onClick={() => dispatch({ type: "UI", patch: { leftTab: "themes", selectedId: null } })}>
+          Choose event
+        </button>
+      )}
+    </div>
   );
 }
 

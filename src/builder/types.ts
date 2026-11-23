@@ -65,6 +65,8 @@ export interface ThemeTokens {
 export interface Theme {
   id: string;
   name: string;
+  /** Stutzee event whose speakers, sponsors, tickets and sessions the event-data components show. */
+  eventId?: string;
   tokens: ThemeTokens;
   header: TBNode[];
   footer: TBNode[];

@@ -142,6 +142,22 @@
   font-size: 12px;
   margin-right: 4px;
 }
+button.b-saved {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.b-saved.error {
+  color: #dc2626;
+}
+.b-spinner.tiny {
+  width: 11px;
+  height: 11px;
+  border-width: 2px;
+}
 
 /* ---------- buttons */
 .b-btn {
@@ -1673,4 +1689,28 @@ select.b-input {
 }
 .b-top-palette:hover {
   background: #fafbfc !important;
+}
+
+/* ---------- event data blocks */
+.b-data-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.b-data-status span {
+  flex: 1;
+}
+.b-data-status.error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.b-note.error {
+  color: #b91c1c;
 }

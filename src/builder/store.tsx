@@ -1,12 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useReducer, useRef, type Dispatch, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type Dispatch, type ReactNode } from "react";
 import type { Device, DropTarget, Page, Project, StyleMap, StyleState, TBNode, Theme, ThemeColors, ThemeTokens, Zone } from "./types";
-import { cloneNode, containsId, getZoneNodes, insertNode, locate, removeNode, setZoneNodes, uid, updateNode } from "./tree";
-import { defaultProject, mahatmaTheme } from "./defaults";
-import { fullColors } from "./css";
+import { cloneNode, containsId, getZoneNodes, insertNode, locate, removeNode, setZoneNodes, updateNode } from "./tree";
+import { isUlid, ulid } from "./ulid";
+import { AUTOSAVE_DELAY_MS, deleteTheme, fetchThemes, saveTheme } from "./api";
+import { blankTheme } from "./defaults";
 
-export const STORAGE_KEY = "custom-theme-builder:project:v1";
+/** Live preview tabs listen on this channel for unsaved edits. */
+export const PREVIEW_CHANNEL = "custom-theme-builder:preview";
 
 export type LeftTab = "components" | "layers" | "pages" | "themes";
 export type RightTab = "edit" | "style" | "content" | "advanced";
@@ -30,7 +32,14 @@ export interface State {
   ready: boolean;
   lastKey: string | null;
   lastTime: number;
-  savedAt: number;
+  sync: SyncState;
+}
+
+export type SyncStatus = "loading" | "saving" | "saved" | "error";
+export interface SyncState {
+  status: SyncStatus;
+  message?: string;
+  at?: number;
 }
 
 export type Action =
@@ -38,7 +47,8 @@ export type Action =
   | { type: "UNDO" }
   | { type: "REDO" }
   | { type: "UI"; patch: Partial<UIState> }
-  | { type: "SAVED" }
+  | { type: "SYNC"; sync: SyncState }
+  | { type: "REMOTE"; themes: Theme[] }
   | { type: "ADD_NODE"; node: TBNode; target: DropTarget }
   | { type: "MOVE_NODE"; id: string; target: DropTarget }
   | { type: "DELETE_NODE"; id: string }
@@ -58,6 +68,7 @@ export type Action =
   | { type: "SET_THEME"; id: string }
   | { type: "UPDATE_TOKENS"; patch: Partial<Omit<ThemeTokens, "colors">>; colors?: Partial<ThemeColors>; key?: string }
   | { type: "SET_CUSTOM_CSS"; css: string }
+  | { type: "SET_EVENT_ID"; eventId: string }
   | { type: "ADD_PAGE"; page: Page }
   | { type: "DUPLICATE_PAGE"; id: string }
   | { type: "UPDATE_PAGE"; id: string; patch: Partial<Omit<Page, "id" | "nodes">> }
@@ -93,13 +104,13 @@ function mapZone(p: Project, zone: Zone, fn: (nodes: TBNode[]) => TBNode[]): Pro
   return mapTheme(p, (t) => setZoneNodes(t, page.id, zone, fn(getZoneNodes(t, page, zone))));
 }
 
-function reIdTheme(t: Theme): Theme {
+export function reIdTheme(t: Theme): Theme {
   return {
     ...JSON.parse(JSON.stringify(t)),
-    id: uid("t"),
+    id: ulid(),
     header: t.header.map(cloneNode),
     footer: t.footer.map(cloneNode),
-    pages: t.pages.map((pg) => ({ ...pg, id: uid("p"), nodes: pg.nodes.map(cloneNode) })),
+    pages: t.pages.map((pg) => ({ ...pg, id: ulid(), nodes: pg.nodes.map(cloneNode) })),
   };
 }
 
@@ -124,9 +135,14 @@ function reducer(state: State, a: Action): State {
 
   switch (a.type) {
     case "LOAD":
-      return { ...state, project: a.project, past: [], future: [], ready: true, ui: { ...state.ui, selectedId: null } };
-    case "SAVED":
-      return { ...state, savedAt: Date.now() };
+      return { ...state, project: withValidSelection(a.project), past: [], future: [], ready: true, ui: { ...state.ui, selectedId: null } };
+    case "REMOTE": {
+      // Newer copy from the API (e.g. saved from another tab); undo history no longer applies.
+      const np = withValidSelection({ ...p, themes: a.themes });
+      return { ...state, project: np, past: [], future: [], ui: { ...state.ui, selectedId: null } };
+    }
+    case "SYNC":
+      return { ...state, sync: a.sync };
     case "UI":
       return { ...state, ui: { ...state.ui, ...a.patch } };
     case "UNDO": {
@@ -262,6 +278,8 @@ function reducer(state: State, a: Action): State {
       const np = mapTheme(p, (t) => ({ ...t, tokens: { ...t.tokens, ...a.patch, colors: { ...t.tokens.colors, ...(a.colors ?? {}) } } }));
       return commit(state, np, a.key);
     }
+    case "SET_EVENT_ID":
+      return commit(state, mapTheme(p, (t) => ({ ...t, eventId: a.eventId })), "event-id");
     case "SET_CUSTOM_CSS":
       return commit(state, mapTheme(p, (t) => ({ ...t, customCss: a.css })), "custom-css");
 
@@ -273,7 +291,7 @@ function reducer(state: State, a: Action): State {
     case "DUPLICATE_PAGE": {
       const src = theme.pages.find((x) => x.id === a.id);
       if (!src) return state;
-      const copy: Page = { ...src, id: uid("p"), name: src.name + " copy", slug: src.slug + "-copy", nodes: src.nodes.map(cloneNode) };
+      const copy: Page = { ...src, id: ulid(), name: src.name + " copy", slug: src.slug + "-copy", nodes: src.nodes.map(cloneNode) };
       const idx = theme.pages.findIndex((x) => x.id === a.id);
       const np = { ...mapTheme(p, (t) => ({ ...t, pages: [...t.pages.slice(0, idx + 1), copy, ...t.pages.slice(idx + 1)] })), activePageId: copy.id };
       return commit(state, np, undefined, { selectedId: null });
@@ -307,17 +325,33 @@ export function isValidProject(x: unknown): x is Project {
   return !!p && Array.isArray(p.themes) && p.themes.length > 0 && p.themes.every((t) => Array.isArray(t.pages) && t.pages.length > 0 && Array.isArray(t.header) && Array.isArray(t.footer));
 }
 
-export function loadProject(): Project | null {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!isValidProject(parsed)) return null;
-    // older saves may miss newer palette colors
-    return { ...parsed, themes: parsed.themes.map((t) => ({ ...t, tokens: { ...t.tokens, colors: fullColors(t.tokens.colors) } })) };
-  } catch {
-    return null;
-  }
+/**
+ * Themes and pages are stored by the API under ULID ids. Older saves used short
+ * random ids, so give those (and any duplicates) new ULIDs, keeping the active selection.
+ */
+export function withUlidIds(p: Project): Project {
+  const seen = new Set<string>();
+  const remap = new Map<string, string>();
+  const fix = (id: string) => {
+    if (isUlid(id) && !seen.has(id)) {
+      seen.add(id);
+      return id;
+    }
+    const next = ulid();
+    if (!remap.has(id)) remap.set(id, next);
+    seen.add(next);
+    return next;
+  };
+  const themes = p.themes.map((t) => ({ ...t, id: fix(t.id), pages: t.pages.map((pg) => ({ ...pg, id: fix(pg.id) })) }));
+  if (!remap.size) return p;
+  return { ...p, themes, activeThemeId: remap.get(p.activeThemeId) ?? p.activeThemeId, activePageId: remap.get(p.activePageId) ?? p.activePageId };
+}
+
+/** Keep the active theme/page if they still exist, otherwise fall back to the first ones. */
+function withValidSelection(p: Project): Project {
+  const theme = p.themes.find((t) => t.id === p.activeThemeId) ?? p.themes[0];
+  const page = theme.pages.find((pg) => pg.id === p.activePageId) ?? theme.pages[0];
+  return { ...p, activeThemeId: theme.id, activePageId: page.id };
 }
 
 interface Ctx {
@@ -325,63 +359,177 @@ interface Ctx {
   dispatch: Dispatch<Action>;
   theme: Theme;
   page: Page;
+  /** Try sending unsaved changes to the API again. */
+  retrySync: () => void;
 }
 
 const BuilderContext = createContext<Ctx | null>(null);
 
+/** The open theme/page live in the URL (?theme=…&page=…), not in browser storage. */
+function selectionFromUrl(): { theme: string | null; page: string | null } {
+  const q = new URLSearchParams(window.location.search);
+  return { theme: q.get("theme"), page: q.get("page") };
+}
+
+/** Shown only until the API answers; never saved. */
+function placeholderProject(): Project {
+  const t = blankTheme("Loading…");
+  return { version: 1, themes: [t], activeThemeId: t.id, activePageId: t.pages[0].id };
+}
+
 export function BuilderProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, () => ({
-    project: defaultProject(),
+    project: placeholderProject(),
     past: [],
     future: [],
     ui: initialUI,
     ready: false,
     lastKey: null,
     lastTime: 0,
-    savedAt: 0,
+    sync: { status: "loading" } as SyncState,
   }));
 
+  /** JSON of each theme as last saved to / read from the API, keyed by theme id. */
+  const synced = useRef<Map<string, string> | null>(null);
+  const syncing = useRef(false);
+  const latest = useRef(state.project);
   useEffect(() => {
-    let saved = loadProject();
-    try {
-      // v1 added the Mahatma theme; v2 replaces it with the version whose colors follow the theme palette.
-      const SEED1 = "custom-theme-builder:seed:mahatma";
-      const SEED2 = "custom-theme-builder:seed:mahatma-v2";
-      if (saved && !localStorage.getItem(SEED2)) {
-        const m = mahatmaTheme();
-        const idx = saved.themes.findIndex((t) => t.name === m.name);
-        if (idx >= 0) {
-          const themes = [...saved.themes];
-          const wasActive = saved.activeThemeId === themes[idx].id;
-          themes[idx] = m;
-          saved = { ...saved, themes, ...(wasActive ? { activeThemeId: m.id, activePageId: m.pages[0].id } : {}) };
-        } else if (!localStorage.getItem(SEED1)) {
-          saved = { ...saved, themes: [m, ...saved.themes], activeThemeId: m.id, activePageId: m.pages[0].id };
-        }
-      }
-      localStorage.setItem(SEED1, "1");
-      localStorage.setItem(SEED2, "1");
-    } catch {}
-    dispatch({ type: "LOAD", project: saved ?? state.project });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    latest.current = state.project;
+  }, [state.project]);
+
+  const isDirty = useCallback(() => {
+    const known = synced.current;
+    if (!known) return false;
+    const themes = latest.current.themes;
+    return known.size !== themes.length || themes.some((t, i) => known.get(t.id) !== themeKey(t, i));
   }, []);
 
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Load every theme from the API.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        let themes = await fetchThemes();
+        if (cancelled) return;
+        synced.current = new Map(themes.map((t, i) => [t.id, themeKey(t, i)]));
+        // The builder needs at least one theme: start a blank one, which autosave then creates in the API.
+        if (!themes.length) themes = [blankTheme("My theme")];
+        const sel = selectionFromUrl();
+        const project = { version: 1 as const, themes, activeThemeId: sel.theme ?? "", activePageId: sel.page ?? "" };
+        dispatch({ type: "SYNC", sync: { status: "saved" } });
+        dispatch({ type: "LOAD", project });
+      } catch (e) {
+        if (!cancelled) dispatch({ type: "SYNC", sync: { status: "error", message: `Could not load themes from the API (${errorText(e)}).` } });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Keep the URL pointing at the open theme and page.
+  const { activeThemeId, activePageId } = state.project;
   useEffect(() => {
     if (!state.ready) return;
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.project));
-        dispatch({ type: "SAVED" });
-      } catch (e) {
-        console.warn("Could not save project", e);
-      }
-    }, 400);
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("theme") === activeThemeId && q.get("page") === activePageId) return;
+    q.set("theme", activeThemeId);
+    q.set("page", activePageId);
+    window.history.replaceState(null, "", `${window.location.pathname}?${q}`);
+  }, [state.ready, activeThemeId, activePageId]);
+
+  // Send edits to open preview tabs straight away (they load from the API on open).
+  const channel = useRef<BroadcastChannel | null>(null);
+  useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") return;
+    channel.current = new BroadcastChannel(PREVIEW_CHANNEL);
+    return () => channel.current?.close();
+  }, []);
+  useEffect(() => {
+    if (state.ready) channel.current?.postMessage(state.project);
   }, [state.project, state.ready]);
 
-  const value = useMemo<Ctx>(() => ({ state, dispatch, theme: activeTheme(state.project), page: activePage(state.project) }), [state]);
+  // Save changed themes to the API, and delete removed ones.
+  const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const runSync = useCallback(async function run(): Promise<void> {
+    const known = synced.current;
+    if (!known || syncing.current) return;
+    const project = latest.current;
+    const changed = project.themes.map((t, i) => ({ t, i, key: themeKey(t, i) })).filter((x) => known.get(x.t.id) !== x.key);
+    const removed = [...known.keys()].filter((id) => !project.themes.some((t) => t.id === id));
+    if (!changed.length && !removed.length) return;
+
+    syncing.current = true;
+    dispatch({ type: "SYNC", sync: { status: "saving" } });
+    try {
+      for (const { t, i, key } of changed) {
+        await saveTheme(t, i);
+        known.set(t.id, key);
+      }
+      for (const id of removed) {
+        await deleteTheme(id);
+        known.delete(id);
+      }
+      dispatch({ type: "SYNC", sync: { status: "saved", at: Date.now() } });
+    } catch (e) {
+      dispatch({ type: "SYNC", sync: { status: "error", message: errorText(e) } });
+      syncing.current = false;
+      return;
+    }
+    syncing.current = false;
+    // Edits made while saving are picked up by another pass.
+    if (latest.current !== project) void run();
+  }, []);
+
+  useEffect(() => {
+    if (!state.ready || !synced.current) return;
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => void runSync(), AUTOSAVE_DELAY_MS);
+  }, [state.project, state.ready, runSync]);
+
+  // When the tab comes back into view with nothing unsaved, pick up changes made elsewhere.
+  useEffect(() => {
+    const onVisible = async () => {
+      if (document.visibilityState !== "visible" || !synced.current || syncing.current || isDirty()) return;
+      try {
+        const themes = await fetchThemes();
+        if (!themes.length || syncing.current || isDirty()) return;
+        const keys = new Map(themes.map((t, i) => [t.id, themeKey(t, i)]));
+        const same = keys.size === synced.current.size && [...keys].every(([id, k]) => synced.current?.get(id) === k);
+        if (same) return;
+        synced.current = keys;
+        dispatch({ type: "REMOTE", themes });
+      } catch {}
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [isDirty]);
+
+  // Warn before closing the tab while changes are still being sent.
+  useEffect(() => {
+    const onLeave = (e: BeforeUnloadEvent) => {
+      if (isDirty()) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", onLeave);
+    return () => window.removeEventListener("beforeunload", onLeave);
+  }, [isDirty]);
+
+  // Before the first successful load from the API nothing has been compared yet, so reload instead.
+  const retrySync = useCallback(() => {
+    if (synced.current) void runSync();
+    else window.location.reload();
+  }, [runSync]);
+
+  const value = useMemo<Ctx>(() => ({ state, dispatch, theme: activeTheme(state.project), page: activePage(state.project), retrySync }), [state, retrySync]);
   return <BuilderContext.Provider value={value}>{children}</BuilderContext.Provider>;
+}
+
+function themeKey(t: Theme, sort: number): string {
+  return JSON.stringify([sort, t]);
+}
+
+function errorText(e: unknown): string {
+  return e instanceof Error ? e.message : "unknown error";
 }
 
 export function useBuilder(): Ctx {

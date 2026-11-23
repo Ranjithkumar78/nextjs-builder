@@ -1,5 +1,5 @@
-import type { Page, Project, Theme, ThemeTokens } from "./types";
-import { uid } from "./tree";
+import type { Page, Theme, ThemeTokens } from "./types";
+import { ulid } from "./ulid";
 import * as P from "./presets";
 import { mahatmaTheme } from "./presets-mahatma";
 
@@ -57,13 +57,13 @@ export const TOKEN_PRESETS: { id: string; label: string; tokens: ThemeTokens }[]
 ];
 
 export function newPage(name: string, slug: string, nodes = [] as Page["nodes"]): Page {
-  return { id: uid("p"), name, slug, nodes, showHeader: true, showFooter: true };
+  return { id: ulid(), name, slug, nodes, showHeader: true, showFooter: true };
 }
 
 export function starterTheme(name = "Starter", presetId = "light"): Theme {
   const tokens = TOKEN_PRESETS.find((t) => t.id === presetId)?.tokens ?? TOKEN_PRESETS[0].tokens;
   return {
-    id: uid("t"),
+    id: ulid(),
     name,
     tokens: JSON.parse(JSON.stringify(tokens)),
     header: [P.navbar()],
@@ -80,7 +80,7 @@ export function starterTheme(name = "Starter", presetId = "light"): Theme {
 export function blankTheme(name = "Blank theme", presetId = "light"): Theme {
   const tokens = TOKEN_PRESETS.find((t) => t.id === presetId)?.tokens ?? TOKEN_PRESETS[0].tokens;
   return {
-    id: uid("t"),
+    id: ulid(),
     name,
     tokens: JSON.parse(JSON.stringify(tokens)),
     header: [],
@@ -88,11 +88,4 @@ export function blankTheme(name = "Blank theme", presetId = "light"): Theme {
     pages: [newPage("Home", "home")],
     customCss: "",
   };
-}
-
-export function defaultProject(): Project {
-  const m = mahatmaTheme();
-  const a = starterTheme("Starter Light", "light");
-  const b = starterTheme("Midnight Agency", "midnight");
-  return { version: 1, themes: [m, a, b], activeThemeId: m.id, activePageId: m.pages[0].id };
 }

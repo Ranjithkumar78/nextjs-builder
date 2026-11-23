@@ -347,7 +347,20 @@ export function pageTitle(title: string, sub: string): TBNode {
   );
 }
 
+// ---------------- live event data sections
+const eventSection = (badge: string, title: string, sub: string, type: string, props: Record<string, unknown>, name: string, surface = false): TBNode =>
+  section([container([...centerHeader(badge, title, sub), c(type, props as TBNode["props"])])], { padding: "96px 24px", ...(surface ? { backgroundColor: "var(--tb-surface)" } : {}) }, name);
+
+export const speakersSection = () => eventSection("Speakers", "Meet our speakers", "Industry leaders sharing what they know.", "speakers", { layout: "grid", columns: 4 }, "Speakers");
+export const sponsorsSection = () => eventSection("Sponsors", "Our sponsors", "Thank you to the partners who make this event possible.", "sponsors", { layout: "byTier" }, "Sponsors", true);
+export const ticketsSection = () => eventSection("Tickets", "Get your tickets", "Pick the pass that suits you.", "tickets", { layout: "byCategory", columns: 3 }, "Tickets");
+export const agendaSection = () => eventSection("Agenda", "Event agenda", "Talks, workshops and everything in between.", "sessions", { layout: "tabs" }, "Agenda", true);
+
 export const BLOCKS: BlockPreset[] = [
+  { id: "ev-speakers", label: "Speakers (live)", icon: "mic", build: speakersSection },
+  { id: "ev-sponsors", label: "Sponsors (live)", icon: "award", build: sponsorsSection },
+  { id: "ev-tickets", label: "Tickets (live)", icon: "ticket", build: ticketsSection },
+  { id: "ev-agenda", label: "Agenda (live)", icon: "calendar", build: agendaSection },
   { id: "navbar", label: "Navbar", icon: "header", build: navbar },
   { id: "hero", label: "Hero centered", icon: "hero", build: heroCentered },
   { id: "hero-split", label: "Hero split", icon: "row", build: heroSplit },

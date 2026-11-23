@@ -1,8 +1,8 @@
 import type { Page, StyleMap, TBNode, Theme } from "./types";
 import { createNode as c } from "./registry";
-import { uid } from "./tree";
+import { ulid } from "./ulid";
 
-const newPage = (name: string, slug: string, nodes: TBNode[]): Page => ({ id: uid("p"), name, slug, nodes, showHeader: true, showFooter: true });
+const newPage = (name: string, slug: string, nodes: TBNode[]): Page => ({ id: ulid(), name, slug, nodes, showHeader: true, showFooter: true });
 
 /* Mahatma Alumni Meetup 2026 — homecoming homepage template.
    Images live in /public/mahatma. Everything here is ordinary builder nodes, so every line is editable. */
@@ -620,7 +620,7 @@ function footer(): TBNode {
 
 export function mahatmaTheme(): Theme {
   return {
-    id: uid("t"),
+    id: ulid(),
     name: "Mahatma Alumni Meetup 2026",
     tokens: {
       colors: {

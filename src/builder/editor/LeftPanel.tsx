@@ -6,7 +6,9 @@ import { CATEGORIES, COMPONENTS, createNode, getDef, isContainer } from "../regi
 import { BLOCKS } from "../presets";
 import * as P from "../presets";
 import { dragState } from "../dnd";
-import { getZoneNodes, locate, uid } from "../tree";
+import { getZoneNodes, locate } from "../tree";
+import { isUlid, ulid } from "../ulid";
+import { refreshEventData } from "../eventData";
 import { blankTheme, mahatmaTheme, newPage, starterTheme, TOKEN_PRESETS } from "../defaults";
 import { COLOR_TOKENS, FONT_OPTIONS, fullColors } from "../css";
 import type { DropTarget, TBNode, Theme, Zone } from "../types";
@@ -427,7 +429,7 @@ function ThemesTab() {
       th.header = [P.navbar()];
       th.footer = [P.simpleFooter()];
     }
-    dispatch({ type: "ADD_THEME", theme: { ...th, id: uid("t") } });
+    dispatch({ type: "ADD_THEME", theme: { ...th, id: ulid() } });
     setCreating(false);
     setName("");
   };
@@ -572,6 +574,18 @@ function ThemesTab() {
               </div>
             </div>
           )}
+        </Section>
+        <Section title="Event data">
+          <div className="b-note">The Speakers, Sponsors, Tickets and Sessions elements show live data from this Stutzee event.</div>
+          <Field label="Stutzee event ID" full>
+            <TextInput value={theme.eventId ?? ""} onChange={(v) => dispatch({ type: "SET_EVENT_ID", eventId: v.trim() })} placeholder="e.g. 01JXXXXXXXXXXXXXXXXXXXXXXX" />
+          </Field>
+          {theme.eventId && !isUlid(theme.eventId) ? <div className="b-note error">An event ID is 26 letters and digits.</div> : null}
+          {theme.eventId && isUlid(theme.eventId) ? (
+            <button className="b-btn small" onClick={() => refreshEventData()}>
+              <Icon name="refresh" size={13} /> Reload event data
+            </button>
+          ) : null}
         </Section>
         <Section title="Global custom CSS" defaultOpen={false}>
           <div className="b-note">Applied to every page of this theme. Elements have classes like .tb-t-button and .tb-n-ID.</div>

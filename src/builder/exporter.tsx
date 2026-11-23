@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import type { Page, Project, Theme } from "./types";
 import { googleFontsUrl, themeCss } from "./css";
 import { COUNTDOWN_SCRIPT, ZoneView, type RenderCtx } from "./render/NodeView";
+import { prefetchEventData } from "./eventData";
 
 export function pageFileName(p: Page, theme: Theme): string {
   return theme.pages[0].id === p.id || p.slug === "home" || p.slug === "index" ? "index.html" : `${p.slug}.html`;
@@ -24,7 +25,7 @@ function hrefMapper(theme: Theme) {
 function renderBody(theme: Theme, page: Page): string {
   const host = document.createElement("div");
   const root = createRoot(host);
-  const rc: RenderCtx = { edit: false, mapHref: hrefMapper(theme) };
+  const rc: RenderCtx = { edit: false, mapHref: hrefMapper(theme), eventId: theme.eventId };
   flushSync(() => {
     root.render(
       <div className="tb-root">
@@ -158,11 +159,18 @@ function safe(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "theme";
 }
 
-export function exportPage(theme: Theme, page: Page) {
+/** Event data is fetched first so speakers, tickets etc. are written into the HTML. */
+async function prefetchFor(theme: Theme, pages: Page[]) {
+  await prefetchEventData([...theme.header, ...theme.footer, ...pages.flatMap((p) => p.nodes)], theme.eventId ?? "");
+}
+
+export async function exportPage(theme: Theme, page: Page) {
+  await prefetchFor(theme, [page]);
   download(`${safe(theme.name)}-${pageFileName(page, theme)}`, pageHtml(theme, page), "text/html");
 }
 
-export function exportThemeZip(theme: Theme) {
+export async function exportThemeZip(theme: Theme) {
+  await prefetchFor(theme, theme.pages);
   const files = theme.pages.map((p) => ({ name: pageFileName(p, theme), content: pageHtml(theme, p) }));
   files.push({ name: "theme.json", content: JSON.stringify(theme, null, 2) });
   download(`${safe(theme.name)}-site.zip`, makeZip(files));

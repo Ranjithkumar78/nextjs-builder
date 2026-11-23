@@ -5,6 +5,7 @@ import type { StyleMap, TBNode, ThemeColors } from "../types";
 import { COLOR_TOKENS } from "../css";
 import { tokenOf, UnitInput } from "../ui/controls";
 import { Icon } from "../ui/Icon";
+import { imageUrlFor } from "../api";
 
 /* Simple, preset-based editing. Every control writes normal styles, so the Design tab
    always shows exactly what a quick choice did. */
@@ -86,9 +87,7 @@ function uploadTo(cb: (data: string) => void) {
   input.onchange = () => {
     const f = input.files?.[0];
     if (!f) return;
-    const r = new FileReader();
-    r.onload = () => cb(String(r.result));
-    r.readAsDataURL(f);
+    void imageUrlFor(f).then((url) => url && cb(url));
   };
   input.click();
 }

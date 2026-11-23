@@ -1,7 +1,10 @@
 import type { NodeProps, StyleMap, TBNode, NodeStyles } from "./types";
 import { uid } from "./tree";
 
-export type FieldType = "text" | "textarea" | "url" | "select" | "number" | "toggle" | "image" | "links" | "items" | "code" | "color";
+export type FieldType = "text" | "textarea" | "url" | "select" | "number" | "toggle" | "image" | "links" | "items" | "code" | "color" | "datafilter";
+
+/** What a "datafilter" field lists, read from the event's live data. */
+export type DataFacet = "ticketCategory" | "sponsorTier" | "sessionTrack" | "sessionDay";
 
 export interface FieldDef {
   key: string;
@@ -10,9 +13,13 @@ export interface FieldDef {
   options?: { label: string; value: string }[];
   placeholder?: string;
   help?: string;
+  /** For "datafilter" fields. */
+  facet?: DataFacet;
+  /** Show the field only when this returns true (e.g. options that only apply to one layout). */
+  when?: (props: NodeProps) => boolean;
 }
 
-export type Category = "Layout" | "Basic" | "Media" | "Forms" | "Navigation";
+export type Category = "Event data" | "Layout" | "Basic" | "Media" | "Forms" | "Navigation";
 
 export interface ComponentDef {
   type: string;
@@ -424,6 +431,211 @@ export const COMPONENTS: ComponentDef[] = [
   },
 ];
 
+
+// ---------------- Event data (live from the Stutzee API)
+const opts = (pairs: [string, string][]) => pairs.map(([value, label]) => ({ value, label }));
+const is = (key: string, ...values: string[]) => (p: NodeProps) => values.includes(String(p[key] ?? ""));
+const not = (key: string, ...values: string[]) => (p: NodeProps) => !values.includes(String(p[key] ?? ""));
+
+const CARD_STYLE: FieldDef = {
+  key: "cardStyle",
+  label: "Card style",
+  type: "select",
+  options: opts([["elevated", "Shadow"], ["bordered", "Border"], ["filled", "Filled"], ["flat", "Plain"]]),
+};
+const ALIGN: FieldDef = { key: "align", label: "Text alignment", type: "select", options: opts([["center", "Center"], ["left", "Left"]]) };
+const COLUMNS = (when?: FieldDef["when"]): FieldDef => ({ key: "columns", label: "Columns (max)", type: "number", help: "Fewer columns are used on small screens.", when });
+const LIMIT: FieldDef = { key: "limit", label: "Show at most", type: "number", help: "0 shows all." };
+const EVENT_OVERRIDE: FieldDef = {
+  key: "eventId",
+  label: "Event ID (optional)",
+  type: "text",
+  placeholder: "Uses the theme's event",
+  help: "Leave empty to use the event set for this theme (Themes tab → Event data).",
+};
+const EMPTY_TEXT: FieldDef = { key: "emptyText", label: "Text when there is nothing to show", type: "text" };
+
+const EVENT_COMPONENTS: ComponentDef[] = [
+  {
+    type: "speakers",
+    label: "Speakers",
+    category: "Event data",
+    icon: "mic",
+    defaultProps: {
+      layout: "grid",
+      columns: 4,
+      limit: 0,
+      photoShape: "circle",
+      cardStyle: "elevated",
+      align: "center",
+      showPhoto: true,
+      showDesignation: true,
+      showOrganisation: true,
+      showBio: false,
+      eventId: "",
+      emptyText: "Speakers will be announced soon.",
+    },
+    defaultStyles: { width: "100%" },
+    fields: [
+      {
+        key: "layout",
+        label: "Layout",
+        type: "select",
+        options: opts([["grid", "Grid of cards"], ["list", "List with bio"], ["spotlight", "Large photo cards"], ["compact", "Compact avatars"], ["carousel", "Scrolling row"]]),
+      },
+      COLUMNS(not("layout", "list", "carousel")),
+      LIMIT,
+      { key: "photoShape", label: "Photo shape", type: "select", options: opts([["circle", "Circle"], ["rounded", "Rounded"], ["square", "Square"]]), when: not("layout", "spotlight") },
+      { ...CARD_STYLE, when: not("layout", "compact") },
+      { ...ALIGN, when: not("layout", "list") },
+      { key: "showPhoto", label: "Show photo", type: "toggle" },
+      { key: "showDesignation", label: "Show designation", type: "toggle" },
+      { key: "showOrganisation", label: "Show organisation", type: "toggle" },
+      { key: "showBio", label: "Show bio", type: "toggle", when: not("layout", "compact") },
+      EMPTY_TEXT,
+      EVENT_OVERRIDE,
+    ],
+  },
+  {
+    type: "sponsors",
+    label: "Sponsors",
+    category: "Event data",
+    icon: "award",
+    defaultProps: {
+      layout: "byTier",
+      columns: 5,
+      limit: 0,
+      tier: "",
+      logoHeight: 64,
+      cardStyle: "bordered",
+      align: "center",
+      grayscale: false,
+      showName: false,
+      showIndustry: false,
+      showDescription: false,
+      linkWebsite: true,
+      eventId: "",
+      emptyText: "Sponsors will be announced soon.",
+    },
+    defaultStyles: { width: "100%" },
+    fields: [
+      {
+        key: "layout",
+        label: "Layout",
+        type: "select",
+        options: opts([["byTier", "Grouped by tier"], ["grid", "All logos grid"], ["strip", "Logo strip"], ["marquee", "Scrolling logos"], ["cards", "Cards with details"]]),
+      },
+      { key: "tier", label: "Only this tier", type: "datafilter", facet: "sponsorTier" },
+      COLUMNS(is("layout", "byTier", "grid", "cards")),
+      LIMIT,
+      { key: "logoHeight", label: "Logo height (px)", type: "number" },
+      { ...CARD_STYLE, when: not("layout", "strip", "marquee") },
+      { ...ALIGN, when: is("layout", "byTier", "cards") },
+      { key: "grayscale", label: "Grey logos (colour on hover)", type: "toggle" },
+      { key: "showName", label: "Show name", type: "toggle", when: not("layout", "cards") },
+      { key: "showIndustry", label: "Show industry", type: "toggle" },
+      { key: "showDescription", label: "Show description", type: "toggle", when: is("layout", "cards") },
+      { key: "linkWebsite", label: "Link logos to sponsor website", type: "toggle" },
+      EMPTY_TEXT,
+      EVENT_OVERRIDE,
+    ],
+  },
+  {
+    type: "tickets",
+    label: "Tickets",
+    category: "Event data",
+    icon: "ticket",
+    defaultProps: {
+      layout: "byCategory",
+      columns: 3,
+      category: "",
+      cardStyle: "elevated",
+      align: "left",
+      currency: "₹",
+      showDescription: true,
+      showDates: true,
+      showRemaining: false,
+      showSoldOut: true,
+      highlight: "",
+      buttonText: "Book now",
+      buttonHref: "#register",
+      eventId: "",
+      emptyText: "Tickets are not on sale yet.",
+    },
+    defaultStyles: { width: "100%" },
+    fields: [
+      {
+        key: "layout",
+        label: "Layout",
+        type: "select",
+        options: opts([
+          ["byCategory", "Grouped by category"],
+          ["tabs", "Category tabs"],
+          ["all", "All tickets"],
+          ["pricing", "Pricing table"],
+          ["list", "Compact list"],
+        ]),
+      },
+      { key: "category", label: "Only this category", type: "datafilter", facet: "ticketCategory", when: not("layout", "tabs") },
+      COLUMNS(not("layout", "list")),
+      { key: "highlight", label: "Highlight ticket", type: "text", placeholder: "Part of the ticket name, e.g. VIP", help: "The first ticket whose name contains this text is highlighted.", when: not("layout", "list") },
+      { ...CARD_STYLE, when: not("layout", "list") },
+      { ...ALIGN, when: not("layout", "list") },
+      { key: "currency", label: "Currency symbol", type: "text" },
+      { key: "showDescription", label: "Show description", type: "toggle" },
+      { key: "showDates", label: "Show sale dates", type: "toggle" },
+      { key: "showRemaining", label: "Show tickets left", type: "toggle" },
+      { key: "showSoldOut", label: "Show sold-out tickets", type: "toggle" },
+      { key: "buttonText", label: "Button text", type: "text", help: "Leave empty to hide the button." },
+      { key: "buttonHref", label: "Button link", type: "url", help: "Use {ticket} to insert the ticket ID." },
+      EMPTY_TEXT,
+      EVENT_OVERRIDE,
+    ],
+  },
+  {
+    type: "sessions",
+    label: "Sessions",
+    category: "Event data",
+    icon: "calendar",
+    defaultProps: {
+      layout: "tabs",
+      columns: 3,
+      day: "",
+      track: "",
+      cardStyle: "bordered",
+      showTime: true,
+      showDescription: false,
+      showSpeakers: true,
+      showHall: true,
+      showTrack: true,
+      eventId: "",
+      emptyText: "The agenda will be published soon.",
+    },
+    defaultStyles: { width: "100%" },
+    fields: [
+      {
+        key: "layout",
+        label: "Layout",
+        type: "select",
+        options: opts([["tabs", "Day tabs"], ["days", "All days, one after another"], ["timeline", "Timeline"], ["grid", "Grid of cards"], ["byTrack", "Grouped by track"]]),
+      },
+      { key: "day", label: "Only this day", type: "datafilter", facet: "sessionDay", when: not("layout", "tabs") },
+      { key: "track", label: "Only this track", type: "datafilter", facet: "sessionTrack", when: not("layout", "byTrack") },
+      COLUMNS(is("layout", "grid", "byTrack")),
+      CARD_STYLE,
+      { key: "showTime", label: "Show time", type: "toggle" },
+      { key: "showDescription", label: "Show description", type: "toggle" },
+      { key: "showSpeakers", label: "Show speakers", type: "toggle" },
+      { key: "showHall", label: "Show hall", type: "toggle" },
+      { key: "showTrack", label: "Show track", type: "toggle" },
+      EMPTY_TEXT,
+      EVENT_OVERRIDE,
+    ],
+  },
+];
+
+COMPONENTS.push(...EVENT_COMPONENTS);
+
 export const COMPONENT_MAP: Record<string, ComponentDef> = Object.fromEntries(COMPONENTS.map((c) => [c.type, c]));
 
 export function getDef(type: string): ComponentDef {
@@ -461,4 +673,4 @@ export function createNode(
   return node;
 }
 
-export const CATEGORIES: Category[] = ["Layout", "Basic", "Media", "Forms", "Navigation"];
+export const CATEGORIES: Category[] = ["Event data", "Layout", "Basic", "Media", "Forms", "Navigation"];

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import type { Project } from "./types";
-import { loadProject, STORAGE_KEY } from "./store";
-import { defaultProject } from "./defaults";
+import { PREVIEW_CHANNEL } from "./store";
+import { fetchThemes } from "./api";
 import { googleFontsUrl, themeCss } from "./css";
 import { ZoneView, type RenderCtx } from "./render/NodeView";
 
@@ -13,25 +13,39 @@ export default function Preview() {
   const [pageId, setPageId] = useState<string | null>(null);
   const [bar, setBar] = useState(true);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
+    // Initial values come from the URL, which only exists in the browser.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setThemeId(q.get("theme"));
     setPageId(q.get("page"));
-    setProject(loadProject() ?? defaultProject());
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) {
-        const p = loadProject();
-        if (p) setProject(p);
-      }
-    };
+
+    // Saved themes come from the API; unsaved edits arrive from the editor tab.
+    fetchThemes()
+      .then((themes) => {
+        if (!themes.length) return setError("There are no themes yet.");
+        setProject((cur) => cur ?? { version: 1, themes, activeThemeId: themes[0].id, activePageId: themes[0].pages[0].id });
+      })
+      .catch((e) => setError(`Could not load themes from the API (${e instanceof Error ? e.message : "unknown error"}).`));
+
+    const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(PREVIEW_CHANNEL) : null;
+    if (channel) {
+      channel.onmessage = (e: MessageEvent<Project>) => {
+        if (e.data?.themes?.length) {
+          setProject(e.data);
+          setError(null);
+        }
+      };
+    }
     const onPop = () => {
       const q2 = new URLSearchParams(window.location.search);
       setPageId(q2.get("page"));
     };
-    window.addEventListener("storage", onStorage);
     window.addEventListener("popstate", onPop);
     return () => {
-      window.removeEventListener("storage", onStorage);
+      channel?.close();
       window.removeEventListener("popstate", onPop);
     };
   }, []);
@@ -47,6 +61,7 @@ export default function Preview() {
     if (page && theme) document.title = `${page.name} · ${theme.name}`;
   }, [page, theme]);
 
+  if (error && !project) return <p style={{ font: "14px system-ui, sans-serif", padding: 24 }}>{error}</p>;
   if (!project || !theme || !page) return null;
 
   const go = (id: string) => {
@@ -70,7 +85,7 @@ export default function Preview() {
     } else if (href === "#") e.preventDefault();
   };
 
-  const rc: RenderCtx = { edit: false };
+  const rc: RenderCtx = { edit: false, eventId: theme.eventId };
 
   return (
     <>
@@ -93,7 +108,7 @@ export default function Preview() {
               </option>
             ))}
           </select>
-          <a href="/">Back to editor</a>
+          <a href={`/?theme=${theme.id}&page=${page.id}`}>Back to editor</a>
           <button onClick={() => setBar(false)} title="Hide this bar">
             ×
           </button>

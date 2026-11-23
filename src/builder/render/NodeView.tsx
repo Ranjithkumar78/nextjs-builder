@@ -4,6 +4,8 @@ import { createElement, useEffect, useLayoutEffect, useRef, useState, type React
 import type { LinkItem, TBNode, Zone } from "../types";
 import { nodeClass } from "../css";
 import { getDef } from "../registry";
+import { EVENT_BLOCKS } from "./EventBlocks";
+import type { EventSource } from "../eventData";
 
 export interface RenderCtx {
   edit: boolean;
@@ -12,6 +14,8 @@ export interface RenderCtx {
   onTextCommit?: (id: string, key: string, text: string) => void;
   onTextDone?: () => void;
   mapHref?: (href: string) => string;
+  /** The theme's Stutzee event, used by the Speakers, Sponsors, Tickets and Sessions blocks. */
+  eventId?: string;
 }
 
 type Attrs = Record<string, unknown>;
@@ -263,6 +267,15 @@ export function NodeView({ node, rc }: { node: TBNode; rc: RenderCtx }): ReactNo
         <div className="tb-embed-ratio">
           <iframe src={mapEmbed(str(p.query), Number(p.zoom) || 13)} title="Map" loading="lazy" />
         </div>
+      );
+    case "speakers":
+    case "sponsors":
+    case "tickets":
+    case "sessions":
+      return createElement(
+        "div",
+        attrs,
+        createElement(EVENT_BLOCKS[node.type as EventSource], { nodeId: node.id, props: p, eventId: str(p.eventId).trim() || str(rc.eventId).trim(), edit: rc.edit })
       );
     case "countdown":
       return createElement("div", { ...attrs, "data-countdown": str(p.target) }, <Countdown target={str(p.target)} labels={p.showLabels !== false} />);

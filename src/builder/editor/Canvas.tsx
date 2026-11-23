@@ -37,11 +37,12 @@ export function Canvas() {
     (zone: Zone): RenderCtx => ({
       edit: true,
       zone,
+      eventId: theme.eventId,
       editingId,
       onTextCommit: (id, key, text) => dispatch({ type: "UPDATE_PROPS", id, props: { [key]: text } }),
       onTextDone: () => setEditingId(null),
     }),
-    [editingId, dispatch]
+    [editingId, dispatch, theme.eventId]
   );
 
   const boxOf = useCallback((id: string | null): Box | null => {

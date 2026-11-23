@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { isValidProject, STORAGE_KEY, useBuilder } from "../store";
+import { isValidProject, reIdTheme, useBuilder, withUlidIds } from "../store";
 import { Icon } from "../ui/Icon";
 import { exportPage, exportProjectJson, exportThemeZip } from "../exporter";
-import { defaultProject } from "../defaults";
 import type { Device } from "../types";
 
 export function TopBar() {
-  const { state, dispatch, theme, page } = useBuilder();
+  const { state, dispatch, theme, page, retrySync } = useBuilder();
   const [menu, setMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -28,7 +27,7 @@ export function TopBar() {
     { id: "mobile", icon: "mobile", label: "Mobile (390px)" },
   ];
 
-  const saved = state.savedAt > 0;
+  const { sync } = state;
 
   return (
     <header className="b-top">
@@ -81,9 +80,15 @@ export function TopBar() {
           </span>
           Theme colors
         </button>
-        <span className="b-saved" title="Your work is saved automatically in this browser">
-          <Icon name="check" size={13} /> {saved ? "Saved" : "Ready"}
-        </span>
+        {sync.status === "error" ? (
+          <button className="b-saved error" title={`${sync.message ?? "Not saved"} — click to try again`} onClick={retrySync}>
+            <Icon name="close" size={13} /> Not saved · Retry
+          </button>
+        ) : (
+          <span className="b-saved" title={sync.status === "saving" ? "Saving to the server…" : "All changes are saved to the server"}>
+            {sync.status === "saving" ? <span className="b-spinner tiny" /> : <Icon name="check" size={13} />} {sync.status === "saving" ? "Saving…" : "Saved"}
+          </span>
+        )}
         <button className="b-icon-btn" title="Undo (Ctrl+Z)" disabled={!state.past.length} onClick={() => dispatch({ type: "UNDO" })}>
           <Icon name="undo" size={16} />
         </button>
@@ -98,7 +103,7 @@ export function TopBar() {
             <div className="b-menu">
               <button
                 onClick={() => {
-                  exportPage(theme, page);
+                  void exportPage(theme, page);
                   setMenu(false);
                 }}
               >
@@ -106,7 +111,7 @@ export function TopBar() {
               </button>
               <button
                 onClick={() => {
-                  exportThemeZip(theme);
+                  void exportThemeZip(theme);
                   setMenu(false);
                 }}
               >
@@ -124,17 +129,6 @@ export function TopBar() {
               <button onClick={() => fileRef.current?.click()}>
                 <Icon name="upload" size={14} /> Import backup (JSON)
               </button>
-              <button
-                className="danger"
-                onClick={() => {
-                  if (confirm("Reset everything to the starter themes? This cannot be undone.")) {
-                    dispatch({ type: "LOAD", project: defaultProject() });
-                    setMenu(false);
-                  }
-                }}
-              >
-                <Icon name="trash" size={14} /> Reset project
-              </button>
             </div>
           ) : null}
           <input
@@ -149,10 +143,10 @@ export function TopBar() {
               try {
                 const data = JSON.parse(await f.text());
                 if (isValidProject(data)) {
-                  dispatch({ type: "LOAD", project: data });
+                  dispatch({ type: "LOAD", project: withUlidIds(data) });
                 } else if (data && Array.isArray(data.pages) && Array.isArray(data.header)) {
                   // a single theme.json from a ZIP export
-                  dispatch({ type: "ADD_THEME", theme: { ...data, id: "t_" + Math.random().toString(36).slice(2, 9) } });
+                  dispatch({ type: "ADD_THEME", theme: reIdTheme(data) });
                 } else alert("This file is not a Theme Builder backup.");
               } catch {
                 alert("Could not read this file.");
@@ -167,11 +161,6 @@ export function TopBar() {
           target="_blank"
           rel="noreferrer"
           title="Opens a live preview in a new tab — it updates as you edit"
-          onClick={() => {
-            try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(state.project));
-            } catch {}
-          }}
         >
           <Icon name="play" size={13} /> Preview
         </a>

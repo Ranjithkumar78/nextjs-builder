@@ -55,6 +55,17 @@ function Shortcuts() {
 function Shell() {
   const { state } = useBuilder();
   if (!state.ready) {
+    if (state.sync.status === "error") {
+      return (
+        <div className="b-loading">
+          <strong>Your themes could not be loaded</strong>
+          <span>{state.sync.message}</span>
+          <button className="b-btn primary" onClick={() => window.location.reload()}>
+            Try again
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="b-loading">
         <div className="b-spinner" />
