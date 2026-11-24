@@ -3,13 +3,13 @@
 import { useSyncStatus } from "../../store";
 import { Icon } from "../../ui/Icon";
 
-/** "Saving…", "Saved", or "Not saved · Retry" after a failed save. */
+/** "Saving…", "Saved", "Not saved · Retry" after a failed save, or "Changed elsewhere · Reload" after a version conflict. */
 export function SyncBadge() {
   const { sync, retrySync } = useSyncStatus();
   if (sync.status === "error")
     return (
-      <button className="b-saved error" title={`${sync.message ?? "Not saved"} — click to try again`} onClick={retrySync}>
-        <Icon name="close" size={13} /> Not saved · Retry
+      <button className="b-saved error" title={`${sync.message ?? "Not saved"} — click to ${sync.conflict ? "reload" : "try again"}`} onClick={retrySync}>
+        <Icon name="close" size={13} /> {sync.conflict ? "Changed elsewhere · Reload" : "Not saved · Retry"}
       </button>
     );
   const saving = sync.status === "saving";

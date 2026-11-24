@@ -2,36 +2,35 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import type { Project } from "../../types";
-import { AUTOSAVE_DELAY_MS, deleteTheme, saveTheme } from "../../api";
+import { ApiError, AUTOSAVE_DELAY_MS } from "../../api";
 import { errorText } from "../../lib/values";
 import type { SyncState } from "../types";
-import { themeKey, type SyncRefs } from "./refs";
+import type { SyncRefs } from "./refs";
+import { isEmptyPlan, planSync } from "./snapshot";
+import { runPlan } from "./runPlan";
 
-/** Save changed themes to the API (and delete removed ones) a moment after the last edit. Returns a retry function. */
-export function useAutosave({ syncedRef, syncingRef, latestRef }: SyncRefs, setSync: (s: SyncState) => void, project: Project, ready: boolean): () => void {
+/**
+ * Save what changed (theme settings, single pages, deletions) a moment after the last edit.
+ * Returns a retry function: after a version conflict, retrying reloads the latest data instead.
+ */
+export function useAutosave({ syncedRef, versionsRef, syncingRef, latestRef }: SyncRefs, setSync: (s: SyncState) => void, project: Project, ready: boolean): () => void {
+  const conflictRef = useRef(false);
   const runSync = useCallback(
     async function run(): Promise<void> {
-      const known = syncedRef.current;
-      if (!known || syncingRef.current) return;
+      const snap = syncedRef.current;
+      if (!snap || syncingRef.current || conflictRef.current) return;
       const current = latestRef.current;
-      const changed = current.themes.map((t, i) => ({ t, i, key: themeKey(t, i) })).filter((x) => known.get(x.t.id) !== x.key);
-      const removed = [...known.keys()].filter((id) => !current.themes.some((t) => t.id === id));
-      if (!changed.length && !removed.length) return;
+      const plan = planSync(current, snap);
+      if (isEmptyPlan(plan)) return;
 
       syncingRef.current = true;
       setSync({ status: "saving" });
       try {
-        for (const { t, i, key } of changed) {
-          await saveTheme(t, i);
-          known.set(t.id, key);
-        }
-        for (const id of removed) {
-          await deleteTheme(id);
-          known.delete(id);
-        }
+        await runPlan(plan, snap, versionsRef.current);
         setSync({ status: "saved", at: Date.now() });
       } catch (e) {
-        setSync({ status: "error", message: errorText(e) });
+        conflictRef.current = e instanceof ApiError && e.status === 409;
+        setSync({ status: "error", message: errorText(e), conflict: conflictRef.current });
         syncingRef.current = false;
         return;
       }
@@ -39,7 +38,7 @@ export function useAutosave({ syncedRef, syncingRef, latestRef }: SyncRefs, setS
       // Edits made while saving are picked up by another pass.
       if (latestRef.current !== current) void run();
     },
-    [syncedRef, syncingRef, latestRef, setSync],
+    [syncedRef, versionsRef, syncingRef, latestRef, setSync],
   );
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -49,9 +48,9 @@ export function useAutosave({ syncedRef, syncingRef, latestRef }: SyncRefs, setS
     timer.current = setTimeout(() => void runSync(), AUTOSAVE_DELAY_MS);
   }, [project, ready, runSync, syncedRef]);
 
-  // Before the first successful load from the API nothing has been compared yet, so reload instead.
+  // Before the first load nothing has been compared yet, and after a conflict local edits can't be saved: reload.
   return useCallback(() => {
-    if (syncedRef.current) void runSync();
+    if (syncedRef.current && !conflictRef.current) void runSync();
     else window.location.reload();
   }, [runSync, syncedRef]);
 }

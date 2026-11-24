@@ -27,6 +27,8 @@ export interface SyncState {
   status: SyncStatus;
   message?: string;
   at?: number;
+  /** The server rejected a save because the data changed elsewhere: retrying means reloading. */
+  conflict?: boolean;
 }
 
 export interface State {

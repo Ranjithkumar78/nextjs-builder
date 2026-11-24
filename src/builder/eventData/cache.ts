@@ -20,7 +20,7 @@ export function loadEventData(source: EventSource, eventId: string, force = fals
   if (!cache.has(key)) cache.set(key, { status: "loading" });
   const job = (async () => {
     try {
-      const json = await getJson(`event-data/${source}?event=${encodeURIComponent(eventId)}`);
+      const json = await getJson(`event-data/${source}?event=${encodeURIComponent(eventId)}${force ? "&refresh=1" : ""}`);
       cache.set(key, { status: "ready", data: NORMALIZE[source](json) });
     } catch (e) {
       cache.set(key, { status: "error", error: errorText(e, "Could not load data") });

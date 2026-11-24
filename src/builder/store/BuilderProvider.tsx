@@ -7,6 +7,8 @@ import { initialState } from "./history";
 import { activePage, activeTheme } from "./selectors";
 import { BuilderContext, type BuilderCtx } from "./context";
 import type { SyncRefs } from "./sync/refs";
+import type { Snapshot } from "./sync/snapshot";
+import type { Versions } from "../api";
 import type { SyncState } from "./types";
 import { SyncContext, type SyncCtx } from "./SyncStatus";
 import { useThemeLoader } from "./sync/useThemeLoader";
@@ -19,10 +21,11 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
   const { project, ready } = state;
 
-  const syncedRef = useRef<Map<string, string> | null>(null);
+  const syncedRef = useRef<Snapshot | null>(null);
+  const versionsRef = useRef<Versions>(new Map());
   const syncingRef = useRef(false);
   const latestRef = useRef<Project>(project);
-  const refs = useMemo<SyncRefs>(() => ({ syncedRef, syncingRef, latestRef }), []);
+  const refs = useMemo<SyncRefs>(() => ({ syncedRef, versionsRef, syncingRef, latestRef }), []);
   useEffect(() => {
     latestRef.current = project;
   }, [project]);
