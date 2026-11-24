@@ -5,16 +5,17 @@ import { section, container, centerHeader, grid } from "./helpers";
 /* FAQ, team, gallery, contact and about sections. */
 
 export function faq(): TBNode {
-  const q = (t: string, a: string) =>
-    c("box", {}, { gap: "8px", padding: "20px 24px" }, [c("heading", { text: t, level: "h4" }, { fontSize: "18px" }), c("text", { text: a }, { fontSize: "15px" })]);
+  const q = (t: string, a: string, open = false) => c("accordion-item", { title: t, open }, {}, [c("text", { text: a }, { fontSize: "15px" })]);
   return section(
     [
       container(
         [
           ...centerHeader("FAQ", "Frequently asked questions", "Can't find the answer you're looking for? Reach out to our team."),
-          q("Is it really free?", "Yes. Everything runs in your browser and your themes are saved locally."),
-          q("Can I export my site?", "Export a single page as HTML or the entire theme as a ZIP of static files."),
-          q("Does it work on mobile?", "Every element can have separate tablet and mobile styles."),
+          c("accordion", { single: true }, {}, [
+            q("Is it really free?", "Yes. Everything runs in your browser and your themes are saved locally.", true),
+            q("Can I export my site?", "Export a single page as HTML or the entire theme as a ZIP of static files."),
+            q("Does it work on mobile?", "Every element can have separate tablet and mobile styles."),
+          ]),
         ],
         { maxWidth: "780px", gap: "12px" }
       ),

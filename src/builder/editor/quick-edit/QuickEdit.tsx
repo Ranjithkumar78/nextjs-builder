@@ -11,13 +11,14 @@ import { SimpleQuick } from "./SimpleQuick";
 /* Simple, preset-based editing. Every control writes normal styles, so the Style tab
    always shows exactly what a quick choice did. */
 
-const TEXT_TYPES = new Set(["heading", "text", "badge", "link", "quote", "list", "logo", "navmenu", "socials"]);
-const BOX_TYPES = new Set(["section", "container", "row", "column", "grid", "box", "form"]);
-const MEDIA_TYPES = new Set(["image", "video", "map", "countdown", "embed"]);
+const TEXT_TYPES = new Set(["heading", "text", "badge", "link", "quote", "list", "logo", "navmenu", "socials", "icon", "iconlist", "counter", "rating", "table", "alert", "announcement", "share", "calendar"]);
+const BOX_TYPES = new Set(["section", "container", "row", "column", "grid", "box", "form", "accordion", "accordion-item", "tabs", "tab", "slider", "slide", "popup"]);
+const MEDIA_TYPES = new Set(["image", "video", "map", "countdown", "embed", "gallery", "audio"]);
+const BUTTON_TYPES = new Set(["button", "submit", "backtotop", "whatsapp"]);
 
 /** The design panel for an element type. */
 function DesignPanel({ type }: { type: string }) {
-  if (type === "button" || type === "submit") return <ButtonQuick />;
+  if (BUTTON_TYPES.has(type)) return <ButtonQuick />;
   if (TEXT_TYPES.has(type)) return <TextQuick />;
   if (BOX_TYPES.has(type)) return <BoxQuick />;
   if (MEDIA_TYPES.has(type)) return <MediaQuick />;

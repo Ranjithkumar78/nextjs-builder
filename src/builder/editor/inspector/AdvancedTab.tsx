@@ -3,11 +3,21 @@
 import type { StyleState } from "../../types";
 import { useBuilder } from "../../store";
 import { nodeClass } from "../../css";
-import { Field, Section, TextInput, Toggle } from "../../ui/controls";
+import { Field, Section, SelectInput, TextInput, Toggle } from "../../ui/controls";
+import { pairOptions } from "../../lib/values";
 import { Note } from "../../ui/common";
 import { useStyleEditor } from "./StyleEditor";
 
-/** HTML id and classes, visibility, raw CSS for this state, and element info. */
+const ANIMATIONS = pairOptions([
+  ["fade", "Fade in"],
+  ["fade-up", "Fade up"],
+  ["fade-down", "Fade down"],
+  ["slide-left", "Slide in from the right"],
+  ["slide-right", "Slide in from the left"],
+  ["zoom", "Zoom in"],
+]);
+
+/** HTML id and classes, visibility, entrance animation, raw CSS for this state, and element info. */
 export function AdvancedTab() {
   const { dispatch } = useBuilder();
   const { node, styleState, own, set, setProp } = useStyleEditor();
@@ -28,6 +38,15 @@ export function AdvancedTab() {
       <Section title={`Custom CSS · ${styleState}`}>
         <Note>Raw CSS declarations for this element. Example: border-top: 4px solid red; backdrop-filter: blur(8px);</Note>
         <TextInput multiline rows={6} mono value={own.__custom ?? ""} onChange={(v) => set({ __custom: v })} placeholder="property: value;" />
+      </Section>
+      <Section title="Entrance animation">
+        <Field label="Animation" full>
+          <SelectInput value={String(node.props.animation ?? "")} onChange={(v) => setProp("animation", v)} options={ANIMATIONS} placeholder="None" />
+        </Field>
+        <Field label="Delay (ms)">
+          <TextInput value={String(node.props.animationDelay ?? "")} onChange={(v) => setProp("animationDelay", v.replace(/\D/g, ""))} placeholder="0" />
+        </Field>
+        <Note>Plays once when the element scrolls into view on the published page and in Preview.</Note>
       </Section>
       <Section title="Responsive visibility">
         <div className="b-inline">

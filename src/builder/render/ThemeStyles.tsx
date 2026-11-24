@@ -10,7 +10,7 @@ import { customCss, googleFontsUrl, tokensCss, treeCss, type QueryMode } from ".
  */
 export function ThemeStyles({ theme, nodes, mode, prefix = "" }: { theme: Theme; nodes: TBNode[]; mode: QueryMode; prefix?: string }) {
   const { tokens } = theme;
-  const base = useMemo(() => tokensCss(tokens), [tokens]);
+  const base = useMemo(() => tokensCss(tokens, ".tb-root", mode), [tokens, mode]);
   const tree = useMemo(() => treeCss(nodes, mode), [nodes, mode]);
   const fonts = useMemo(() => googleFontsUrl(tokens, nodes), [tokens, nodes]);
   return (

@@ -6,7 +6,10 @@ import { ColorInput, TextInput, Toggle } from "../../../ui/controls";
 import { Options } from "../../../ui/controls/SelectInput";
 import { DataFilterSelect } from "./DataFilterSelect";
 import { ImageField } from "./ImageField";
-import { ItemsField, LinksField } from "./ListFields";
+import { ItemsField } from "./ListFields";
+import { LinksField } from "./LinksField";
+import { ImagesField } from "./ImagesField";
+import { IconPicker } from "./IconSelect";
 import { LinkPicker } from "./LinkPicker";
 
 interface Props {
@@ -47,7 +50,11 @@ export function FieldEditor({ field: f, value: v, onChange: set, pages, colors, 
     case "items":
       return <ItemsField items={Array.isArray(v) ? (v as string[]) : []} onChange={set} />;
     case "links":
-      return <LinksField links={Array.isArray(v) ? (v as LinkItem[]) : []} onChange={set} pages={pages} />;
+      return <LinksField links={Array.isArray(v) ? (v as LinkItem[]) : []} onChange={set} pages={pages} icons={f.links?.icons} nested={f.links?.nested} />;
+    case "images":
+      return <ImagesField images={Array.isArray(v) ? (v as string[]) : []} onChange={set} />;
+    case "icon":
+      return <IconPicker value={text} onChange={set} />;
     case "datafilter":
       return <DataFilterSelect facet={f.facet ?? "ticketCategory"} eventId={eventId} value={text} onChange={set} />;
     default:

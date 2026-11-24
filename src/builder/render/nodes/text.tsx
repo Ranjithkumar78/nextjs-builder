@@ -1,5 +1,4 @@
 import { createElement } from "react";
-import type { LinkItem } from "../../types";
 import { richHtml, NEW_TAB } from "../../lib/html";
 import { str } from "../../lib/values";
 import { InlineText } from "../InlineText";
@@ -39,19 +38,4 @@ export const TEXT_RENDERERS: Record<string, Renderer> = {
       p.src ? <img src={str(p.src)} alt={str(p.text)} style={{ height: "1.6em", width: "auto" }} /> : null,
       <InlineText node={node} rc={rc} tag="span" singleLine plain />,
     ),
-  navmenu: (a) => links(a, "nav", false),
-  socials: (a) => links(a, "div", true),
 };
-
-function links({ p, attrs, href }: RenderArgs, tag: string, newTab: boolean) {
-  const items = Array.isArray(p.links) ? (p.links as LinkItem[]) : [];
-  return createElement(
-    tag,
-    attrs,
-    items.map((l, i) => (
-      <a key={i} href={href(l.href)} {...(newTab ? NEW_TAB : {})}>
-        {l.label}
-      </a>
-    )),
-  );
-}

@@ -15,6 +15,12 @@ const THICKNESS = valueChoices("borderTopWidth", [
   ["Medium", "2px"],
   ["Thick", "4px"],
 ]);
+const SHAPE_HEIGHTS = valueChoices("height", [
+  ["S", "40px"],
+  ["M", "80px"],
+  ["L", "120px"],
+  ["XL", "160px"],
+]);
 const WIDTHS = valueChoices("width", [
   ["Half", "50%"],
   ["Full", "100%"],
@@ -24,6 +30,13 @@ const WIDTHS = valueChoices("width", [
 export function SimpleQuick() {
   const t = useStyleEditor().node.type;
   if (t === "spacer") return <QuickChoice label="Height" options={SPACER_HEIGHTS} />;
+  if (t === "shape")
+    return (
+      <>
+        <QuickColor label="Color" k="color" />
+        <QuickChoice label="Height" options={SHAPE_HEIGHTS} />
+      </>
+    );
   if (t === "divider")
     return (
       <>

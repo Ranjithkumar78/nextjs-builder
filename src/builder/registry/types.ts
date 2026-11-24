@@ -20,7 +20,7 @@ export interface FieldDef {
   links?: { icons?: boolean; nested?: boolean };
 }
 
-export type Category = "Event data" | "Layout" | "Basic" | "Media" | "Forms" | "Navigation";
+export type Category = "Event data" | "Layout" | "Basic" | "Interactive" | "Media" | "Forms" | "Navigation";
 
 export interface ComponentDef {
   type: string;

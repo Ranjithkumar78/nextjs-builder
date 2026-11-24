@@ -10,7 +10,11 @@ export const LAYOUT_COMPONENTS: ComponentDef[] = [
     container: true,
     defaultProps: { tag: "section" },
     defaultStyles: { padding: "64px 24px", width: "100%" },
-    fields: [{ key: "tag", label: "HTML tag", type: "select", options: tagOptions(["section", "div", "header", "footer", "nav", "main", "aside", "article"]) }],
+    fields: [
+      { key: "tag", label: "HTML tag", type: "select", options: tagOptions(["section", "div", "header", "footer", "nav", "main", "aside", "article"]) },
+      { key: "bgVideo", label: "Background video (.mp4 URL)", type: "url", help: "Plays muted and looped behind the content." },
+      { key: "bgVideoShade", label: "Shade over the video", type: "color", when: (p) => !!p.bgVideo },
+    ],
   },
   {
     type: "container",

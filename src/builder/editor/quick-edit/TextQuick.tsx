@@ -10,6 +10,8 @@ function sizesFor(type: string) {
   if (type === "heading") return sizeOpts([24, 36, 48, 64, 88]);
   if (type === "logo") return sizeOpts([18, 24, 34]);
   if (type === "badge") return sizeOpts([12, 13, 15]);
+  if (type === "icon") return sizeOpts([20, 32, 48, 64, 96]);
+  if (type === "counter") return sizeOpts([32, 40, 48, 64, 80]);
   return sizeOpts([14, 16, 18, 22, 26]);
 }
 

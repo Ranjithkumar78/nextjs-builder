@@ -78,11 +78,11 @@ export function computeDrop(target: EventTarget | null, x: number, y: number, fr
   const id = el.getAttribute("data-node-id")!;
   const zone = el.getAttribute("data-zone") as Zone;
   const parentEl = el.parentElement?.closest("[data-node-id], [data-zone-root]");
-  if (!parentEl) return null;
+  if (!parentEl || !el.parentElement) return null;
   const parentId = parentEl.hasAttribute("data-node-id") ? parentEl.getAttribute("data-node-id") : null;
-  const siblings = nodeChildren(parentEl);
-  const myIndex = siblings.indexOf(el as HTMLElement);
-  const flow = flowOf(parentEl);
+  // Siblings live in the direct parent element, which may be a container's inner [data-kids] wrapper.
+  const myIndex = nodeChildren(el.parentElement).indexOf(el as HTMLElement);
+  const flow = flowOf(el.parentElement);
   const r = el.getBoundingClientRect();
   const horizontal = flow !== "col";
   const pos = horizontal ? x - r.left : y - r.top;
@@ -92,7 +92,7 @@ export function computeDrop(target: EventTarget | null, x: number, y: number, fr
     const edge = Math.min(horizontal ? 22 : 14, size * 0.25);
     if (pos < edge) return { target: { zone, parentId, index: myIndex }, indicator: lineFor(r, origin, "before", flow) };
     if (pos > size - edge) return { target: { zone, parentId, index: myIndex + 1 }, indicator: lineFor(r, origin, "after", flow) };
-    const inside = indexInside(el, x, y, origin);
+    const inside = indexInside(el.querySelector(":scope > [data-kids]") ?? el, x, y, origin);
     return { target: { zone, parentId: id, index: inside.index }, indicator: inside.indicator };
   }
   const after = pos > size / 2;

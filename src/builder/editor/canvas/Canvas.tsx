@@ -36,7 +36,8 @@ export function Canvas() {
   const onClick = (e: MouseEvent) => {
     const id = nodeIdFrom(e.target);
     if (editingId && id === editingId) return;
-    e.preventDefault();
+    // Links and buttons don't navigate in the editor; tab titles still switch tabs.
+    if (!(e.target instanceof Element && e.target.closest("label[for]"))) e.preventDefault();
     if (id !== ui.selectedId) select(id);
   };
 

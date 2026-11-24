@@ -23,3 +23,4 @@ import "./21-quick-edit.css";
 import "./22-quick-swatches.css";
 import "./23-theme-palette.css";
 import "./24-event-blocks.css";
+import "./25-new-fields.css";

@@ -12,8 +12,17 @@ import { TEXT_RENDERERS } from "./nodes/text";
 import { MEDIA_RENDERERS } from "./nodes/media";
 import { FORM_RENDERERS } from "./nodes/forms";
 import { EVENT_RENDERERS } from "./nodes/events";
+import { NAVIGATION_RENDERERS } from "./nodes/navigation";
+import { ENGAGE_RENDERERS } from "./nodes/engage";
+import { INTERACTIVE_RENDERERS } from "./nodes/interactive";
+import { CAROUSEL_RENDERERS } from "./nodes/carousel";
+import { WIDGET_RENDERERS } from "./nodes/widgets";
+import { FEEDBACK_RENDERERS } from "./nodes/feedback";
+import { MEDIA_EXTRA_RENDERERS } from "./nodes/media-extra";
+import { FORM_EXTRA_RENDERERS } from "./nodes/forms-extra";
+import { CALENDAR_RENDERERS } from "./nodes/calendar";
 
-const RENDERERS: Record<string, Renderer> = { ...LAYOUT_RENDERERS, ...TEXT_RENDERERS, ...MEDIA_RENDERERS, ...FORM_RENDERERS, ...EVENT_RENDERERS };
+const RENDERERS: Record<string, Renderer> = { ...LAYOUT_RENDERERS, ...TEXT_RENDERERS, ...MEDIA_RENDERERS, ...FORM_RENDERERS, ...EVENT_RENDERERS, ...NAVIGATION_RENDERERS, ...ENGAGE_RENDERERS, ...INTERACTIVE_RENDERERS, ...CAROUSEL_RENDERERS, ...WIDGET_RENDERERS, ...FEEDBACK_RENDERERS, ...MEDIA_EXTRA_RENDERERS, ...FORM_EXTRA_RENDERERS, ...CALENDAR_RENDERERS };
 
 /** Text-bearing types where Enter finishes editing instead of adding a line. */
 const SINGLE_LINE = new Set(["button", "link", "badge", "submit", "logo"]);
@@ -30,6 +39,11 @@ function rootAttrs(node: TBNode, rc: RenderCtx, container: boolean): Attrs {
     attrs.draggable = rc.editingId !== node.id;
     if (container) attrs["data-container"] = "true";
     if (node.hidden) attrs["data-hidden"] = "true";
+  }
+  const anim = str(node.props.animation);
+  if (anim && anim !== "none") {
+    attrs["data-tb-anim"] = anim;
+    if (node.props.animationDelay) attrs["data-tb-delay"] = str(node.props.animationDelay);
   }
   return attrs;
 }

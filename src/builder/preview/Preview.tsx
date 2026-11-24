@@ -6,6 +6,7 @@ import { SiteBody, ThemeStyles, type RenderCtx } from "../render";
 import { usePreviewProject } from "./usePreviewProject";
 import { useUrlParams } from "./useUrlParams";
 import { PreviewBar } from "./PreviewBar";
+import { startRuntime } from "../lib/runtime";
 
 /** Full-page live preview of a theme page, with working links between pages. */
 export default function Preview() {
@@ -17,6 +18,9 @@ export default function Preview() {
   const nodes = useMemo(() => (theme && page ? pageNodes(theme, page) : []), [theme, page]);
   const eventId = theme?.eventId;
   const rc = useMemo<RenderCtx>(() => ({ edit: false, eventId }), [eventId]);
+
+  // Menus, popups, sliders, animations etc. behave as on the published page.
+  useEffect(() => startRuntime(), []);
 
   useEffect(() => {
     if (page && theme) document.title = `${page.name} · ${theme.name}`;

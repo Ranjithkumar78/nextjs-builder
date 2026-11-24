@@ -1,0 +1,53 @@
+/* ---------- icon picker, image list, sub-links */
+.b-iconpick {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.b-iconpick button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1px solid var(--b-line);
+  border-radius: 6px;
+  background: var(--b-panel);
+  color: var(--b-text);
+  cursor: pointer;
+}
+.b-iconpick button:hover {
+  border-color: var(--b-faint);
+}
+.b-iconpick button.on {
+  border-color: var(--b-accent);
+  background: color-mix(in srgb, var(--b-accent) 10%, transparent);
+  color: var(--b-accent);
+}
+.b-iconsel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  color: var(--b-sub);
+}
+.b-iconsel select {
+  width: 88px;
+}
+.b-sublinks {
+  margin: 6px 0 2px 14px;
+  padding-left: 10px;
+  border-left: 2px solid var(--b-line);
+}
+.b-imgrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.b-imgrow img {
+  width: 44px;
+  height: 34px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--b-line-2);
+}

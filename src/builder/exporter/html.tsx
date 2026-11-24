@@ -6,6 +6,7 @@ import type { Page, Theme } from "../types";
 import { googleFontsUrl, themeCss } from "../css";
 import { SiteBody, type RenderCtx } from "../render";
 import { COUNTDOWN_SCRIPT } from "../lib/countdown";
+import { runtimeScript } from "../lib/runtime";
 import { escapeHtml } from "../lib/html";
 import { pageForHref, pageNodes } from "../tree/pages";
 
@@ -57,6 +58,7 @@ ${themeCss(theme, nodes, "media")}
 <body>
 ${renderBody(theme, page)}
 <script>${COUNTDOWN_SCRIPT}</script>
+<script>${runtimeScript()}</script>
 </body>
 </html>
 `;

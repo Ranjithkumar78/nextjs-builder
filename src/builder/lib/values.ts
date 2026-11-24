@@ -69,3 +69,9 @@ export function slugify(s: string, fallback = "page"): string {
 export function errorText(e: unknown, fallback = "unknown error"): string {
   return e instanceof Error ? e.message : fallback;
 }
+
+/** A counter's number: keeps its decimals; optional thousands separators (Indian grouping, like prices). */
+export function formatCount(n: number, separator: boolean): string {
+  const decimals = (String(n).split(".")[1] ?? "").length;
+  return separator ? n.toLocaleString("en-IN", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) : n.toFixed(decimals);
+}

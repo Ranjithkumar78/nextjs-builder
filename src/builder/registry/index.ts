@@ -10,6 +10,14 @@ import { CONTENT_COMPONENTS } from "./components/content";
 import { MEDIA_COMPONENTS } from "./components/media";
 import { FORM_COMPONENTS } from "./components/forms";
 import { NAVIGATION_COMPONENTS } from "./components/navigation";
+import { ENGAGE_COMPONENTS } from "./components/engage";
+import { INTERACTIVE_COMPONENTS } from "./components/interactive";
+import { CAROUSEL_COMPONENTS } from "./components/carousel";
+import { WIDGET_COMPONENTS } from "./components/widgets";
+import { FEEDBACK_COMPONENTS } from "./components/feedback";
+import { MEDIA_EXTRA_COMPONENTS } from "./components/media-extra";
+import { FORM_EXTRA_COMPONENTS } from "./components/forms-extra";
+import { CALENDAR } from "./events/calendar";
 import { SPEAKERS } from "./events/speakers";
 import { SPONSORS } from "./events/sponsors";
 import { TICKETS } from "./events/tickets";
@@ -18,20 +26,28 @@ import { SESSIONS } from "./events/sessions";
 export type * from "./types";
 export { placeholderImage };
 
-export const CATEGORIES: Category[] = ["Event data", "Layout", "Basic", "Media", "Forms", "Navigation"];
+export const CATEGORIES: Category[] = ["Event data", "Layout", "Basic", "Interactive", "Media", "Forms", "Navigation"];
 
 export const COMPONENTS: ComponentDef[] = [
   ...LAYOUT_COMPONENTS,
   ...TEXT_COMPONENTS,
   ...ACTION_COMPONENTS,
   ...CONTENT_COMPONENTS,
+  ...WIDGET_COMPONENTS,
+  ...FEEDBACK_COMPONENTS,
   ...MEDIA_COMPONENTS,
+  ...MEDIA_EXTRA_COMPONENTS,
   ...FORM_COMPONENTS,
+  ...FORM_EXTRA_COMPONENTS,
   ...NAVIGATION_COMPONENTS,
+  ...ENGAGE_COMPONENTS,
+  ...INTERACTIVE_COMPONENTS,
+  ...CAROUSEL_COMPONENTS,
   SPEAKERS,
   SPONSORS,
   TICKETS,
   SESSIONS,
+  CALENDAR,
 ];
 
 export const COMPONENT_MAP: Record<string, ComponentDef> = Object.fromEntries(COMPONENTS.map((c) => [c.type, c]));
